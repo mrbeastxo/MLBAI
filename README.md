@@ -31,6 +31,7 @@ reliable and testable.
 - Native macOS daily scheduling with local logs and lifecycle controls
 - Read-only automation health, run history, log, and storage monitoring
 - Complete current-season results archive with verified prediction comparisons
+- Development-only probability calibration audit with strict deployment gates
 - Human-readable game list in the terminal
 - Raw JSON snapshots saved under `data/raw/`
 - Starter automated tests
@@ -283,6 +284,21 @@ The daily workflow refreshes this archive automatically. The Performance Center
 can filter and paginate official results while labeling old games as untracked.
 Only predictions present in the immutable pregame ledger and subsequently
 settled count as verified MLBAI performance.
+
+Run the calibration audit with:
+
+```bash
+python -m ml.calibration_audit \
+  --data data/processed/training_games_2022-04-07_2022-10-05.csv \
+         data/processed/training_games_2023-03-30_2023-10-01.csv \
+         data/processed/training_games_2024-03-20_2024-09-30.csv \
+         data/processed/training_games_2025-03-27_2025-09-28.csv \
+  --test-season 2025
+```
+
+The calibrator is fit only on development out-of-fold predictions. Deployment
+requires at least 0.001 lower audit log loss, no worse Brier score, and no more
+than a 0.005 accuracy decrease. A rejected candidate never changes production.
 
 ## Test
 

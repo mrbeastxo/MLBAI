@@ -1,0 +1,172 @@
+{
+  "method": "platt_scaling_on_development_out_of_fold_predictions",
+  "features": [
+    "win_percentage_home_minus_away",
+    "runs_per_game_home_minus_away",
+    "runs_allowed_per_game_home_minus_away",
+    "run_differential_per_game_home_minus_away",
+    "last_10_win_percentage_home_minus_away",
+    "last_10_run_differential_home_minus_away",
+    "venue_win_percentage_home_minus_away",
+    "schedule_load_home_minus_away",
+    "last_30_win_percentage_home_minus_away",
+    "last_30_run_differential_home_minus_away",
+    "pythagorean_expectation_home_minus_away",
+    "streak_home_minus_away",
+    "elo_rating_home_minus_away"
+  ],
+  "development_folds": [
+    {
+      "train_seasons": [
+        2022
+      ],
+      "validation_season": 2023,
+      "games": 2430
+    },
+    {
+      "train_seasons": [
+        2022,
+        2023
+      ],
+      "validation_season": 2024,
+      "games": 2429
+    }
+  ],
+  "calibrator": {
+    "intercept": -0.014222,
+    "slope": 0.75949
+  },
+  "audit_season": 2025,
+  "audit_games": 2428,
+  "raw_model": {
+    "metrics": {
+      "accuracy": 0.5416,
+      "log_loss": 0.6892,
+      "brier_score": 0.248
+    },
+    "calibration": {
+      "expected_calibration_error": 0.0474,
+      "maximum_calibration_error": 0.1103,
+      "bins": [
+        {
+          "range": "0.2-0.3",
+          "games": 13,
+          "mean_probability": 0.2743,
+          "observed_home_win_rate": 0.3846,
+          "absolute_gap": 0.1103
+        },
+        {
+          "range": "0.3-0.4",
+          "games": 155,
+          "mean_probability": 0.3695,
+          "observed_home_win_rate": 0.4258,
+          "absolute_gap": 0.0563
+        },
+        {
+          "range": "0.4-0.5",
+          "games": 906,
+          "mean_probability": 0.4602,
+          "observed_home_win_rate": 0.5166,
+          "absolute_gap": 0.0563
+        },
+        {
+          "range": "0.5-0.6",
+          "games": 1062,
+          "mean_probability": 0.5438,
+          "observed_home_win_rate": 0.5763,
+          "absolute_gap": 0.0324
+        },
+        {
+          "range": "0.6-0.7",
+          "games": 274,
+          "mean_probability": 0.6359,
+          "observed_home_win_rate": 0.5693,
+          "absolute_gap": 0.0665
+        },
+        {
+          "range": "0.7-0.8",
+          "games": 18,
+          "mean_probability": 0.7285,
+          "observed_home_win_rate": 0.6667,
+          "absolute_gap": 0.0618
+        }
+      ]
+    }
+  },
+  "calibrated_candidate": {
+    "metrics": {
+      "accuracy": 0.5371,
+      "log_loss": 0.6885,
+      "brier_score": 0.2477
+    },
+    "calibration": {
+      "expected_calibration_error": 0.0444,
+      "maximum_calibration_error": 0.7234,
+      "bins": [
+        {
+          "range": "0.2-0.3",
+          "games": 1,
+          "mean_probability": 0.2977,
+          "observed_home_win_rate": 0.0,
+          "absolute_gap": 0.2977
+        },
+        {
+          "range": "0.3-0.4",
+          "games": 82,
+          "mean_probability": 0.3701,
+          "observed_home_win_rate": 0.378,
+          "absolute_gap": 0.0079
+        },
+        {
+          "range": "0.4-0.5",
+          "games": 1044,
+          "mean_probability": 0.4633,
+          "observed_home_win_rate": 0.5172,
+          "absolute_gap": 0.0539
+        },
+        {
+          "range": "0.5-0.6",
+          "games": 1146,
+          "mean_probability": 0.5378,
+          "observed_home_win_rate": 0.575,
+          "absolute_gap": 0.0372
+        },
+        {
+          "range": "0.6-0.7",
+          "games": 153,
+          "mean_probability": 0.6234,
+          "observed_home_win_rate": 0.5817,
+          "absolute_gap": 0.0417
+        },
+        {
+          "range": "0.7-0.8",
+          "games": 2,
+          "mean_probability": 0.7234,
+          "observed_home_win_rate": 0.0,
+          "absolute_gap": 0.7234
+        }
+      ]
+    }
+  },
+  "home_rate_baseline": {
+    "probability": 0.5252,
+    "metrics": {
+      "accuracy": 0.5432,
+      "log_loss": 0.6901,
+      "brier_score": 0.2485
+    }
+  },
+  "deployment": {
+    "deploy_calibration": false,
+    "decision": "reject",
+    "reason": "Candidate did not pass every predeclared gate; production remains unchanged.",
+    "gates": {
+      "minimum_log_loss_improvement": 0.001,
+      "observed_log_loss_improvement": 0.0007,
+      "brier_score_not_worse": true,
+      "maximum_accuracy_drop": 0.005,
+      "observed_accuracy_drop": 0.0045
+    }
+  },
+  "policy_note": "The audit season has now informed a deployment decision and must not be described as untouched in future model changes. A newer season is required for the next independent final test."
+}

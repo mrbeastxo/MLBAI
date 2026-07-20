@@ -143,6 +143,21 @@ async function loadSystemHealth() {
   }
 }
 
+async function loadCalibration() {
+  try {
+    const data = await fetchJson("/api/v1/calibration");
+    document.querySelector("#raw-log-loss").textContent = data.raw_model.metrics.log_loss.toFixed(4);
+    document.querySelector("#candidate-log-loss").textContent = data.calibrated_candidate.metrics.log_loss.toFixed(4);
+    document.querySelector("#baseline-log-loss").textContent = data.home_rate_baseline.metrics.log_loss.toFixed(4);
+    const decision = document.querySelector("#calibration-decision");
+    decision.textContent = data.deployment.decision;
+    decision.classList.toggle("good", data.deployment.decision === "deploy");
+    document.querySelector("#calibration-note").textContent = data.deployment.reason;
+  } catch {
+    document.querySelector("#calibration-note").textContent = "Calibration audit is unavailable.";
+  }
+}
+
 async function loadGames(gameDate) {
   renderLoading();
   try {
@@ -228,5 +243,6 @@ document.querySelector("#team-filter").addEventListener("keydown", event => {
 
 loadPerformance();
 loadSystemHealth();
+loadCalibration();
 loadGames(dateInput.value);
 loadResults();

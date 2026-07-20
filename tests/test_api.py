@@ -123,3 +123,12 @@ def test_season_results_support_team_filter_and_pagination(tmp_path, monkeypatch
     assert response.status_code == 200
     assert response.json()["total"] == 2
     assert response.json()["returned"] == 1
+
+
+def test_calibration_report_endpoint(tmp_path, monkeypatch):
+    report = tmp_path / "calibration.json"
+    report.write_text(json.dumps({"deployment": {"decision": "reject"}}))
+    monkeypatch.setattr(main, "CALIBRATION_REPORT_PATH", report)
+    response = TestClient(main.app).get("/api/v1/calibration")
+    assert response.status_code == 200
+    assert response.json()["deployment"]["decision"] == "reject"

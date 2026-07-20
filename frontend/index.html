@@ -54,6 +54,20 @@
         </div>
       </section>
 
+      <section class="calibration-panel" aria-label="Probability audit">
+        <div>
+          <p class="eyebrow">Probability audit</p>
+          <h2>Evidence before confidence.</h2>
+          <p id="calibration-note" class="muted">Loading calibration decision…</p>
+        </div>
+        <div class="calibration-metrics">
+          <article><span>Raw log loss</span><strong id="raw-log-loss">—</strong></article>
+          <article><span>Candidate log loss</span><strong id="candidate-log-loss">—</strong></article>
+          <article><span>Baseline log loss</span><strong id="baseline-log-loss">—</strong></article>
+          <article><span>Deployment</span><strong id="calibration-decision">—</strong></article>
+        </div>
+      </section>
+
       <section class="board">
         <div class="section-heading">
           <div>
@@ -101,7 +115,7 @@
     </dialog>
 
     <footer>
-      <span>MLBAI v0.23</span>
+      <span>MLBAI v0.24</span>
       <span>Educational model · Not betting advice</span>
     </footer>
     <script src="/app.js" defer></script>
