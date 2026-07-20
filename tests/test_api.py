@@ -143,6 +143,15 @@ def test_context_validation_endpoint(tmp_path, monkeypatch):
     assert response.json()["decision"] == "context_only"
 
 
+def test_postgame_learning_endpoint(tmp_path, monkeypatch):
+    report = tmp_path / "learning.json"
+    report.write_text(json.dumps({"settled_future_games": 0, "sample_status": "too_early"}))
+    monkeypatch.setattr(main, "POSTGAME_REPORT_PATH", report)
+    response = TestClient(main.app).get("/api/v1/postgame-learning")
+    assert response.status_code == 200
+    assert response.json()["sample_status"] == "too_early"
+
+
 def test_score_model_report_endpoint(tmp_path, monkeypatch):
     report = tmp_path / "scores.json"
     report.write_text(json.dumps({"model": "paired_poisson_regression"}))

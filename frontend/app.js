@@ -247,6 +247,26 @@ async function loadCalibration() {
   }
 }
 
+async function loadPostgameLearning() {
+  try {
+    const data = await fetchJson("/api/v1/postgame-learning");
+    document.querySelector("#learning-games").textContent = data.settled_future_games;
+    document.querySelector("#learning-log-loss").textContent = data.primary_model.log_loss == null
+      ? "Pending" : data.primary_model.log_loss.toFixed(4);
+    document.querySelector("#learning-accuracy").textContent = data.primary_model.accuracy == null
+      ? "No settled games" : `${percent(data.primary_model.accuracy)} accuracy`;
+    document.querySelector("#shadow-advantage").textContent = data.shadow_comparison.log_loss_advantage == null
+      ? "Pending" : `${data.shadow_comparison.log_loss_advantage > 0 ? "+" : ""}${data.shadow_comparison.log_loss_advantage.toFixed(4)}`;
+    document.querySelector("#shadow-sample").textContent = `${data.shadow_comparison.comparable_games} comparable games`;
+    document.querySelector("#drift-status").textContent = data.drift_flag ? "Review needed" : (data.settled_future_games >= 100 ? "Stable" : "Waiting");
+    document.querySelector("#learning-note").textContent = data.recommendation;
+    document.querySelector("#learning-status").textContent = label(data.sample_status);
+    document.querySelector("#learning-status").classList.toggle("healthy", !data.drift_flag);
+  } catch {
+    document.querySelector("#learning-note").textContent = "Postgame learning report is unavailable.";
+  }
+}
+
 async function loadGames(gameDate) {
   renderLoading();
   try {
@@ -333,5 +353,6 @@ document.querySelector("#team-filter").addEventListener("keydown", event => {
 loadPerformance();
 loadSystemHealth();
 loadCalibration();
+loadPostgameLearning();
 loadGames(dateInput.value);
 loadResults();

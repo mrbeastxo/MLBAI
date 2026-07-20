@@ -409,6 +409,17 @@ complete machine-readable decision is in
 `docs/context_model_upgrade_report.json`; 2026 tracked predictions are the next
 independent audit.
 
+### Milestone 37: postgame learning
+
+Every daily run now writes an immutable pregame factor snapshot and a parallel
+team-only shadow prediction for new games. After MLB marks those games final,
+MLBAI compares v0.36 with the shadow model using accuracy, log loss, and Brier
+score; summarizes daily results; counts which factors helped or misled; and
+monitors recent performance for drift. Drift checks remain disabled below 100
+future games, and the system refuses to recommend retraining below 200. The
+dashboard and `/api/v1/postgame-learning` clearly show when the sample is too
+small instead of drawing conclusions early.
+
 ## Test
 
 ```bash

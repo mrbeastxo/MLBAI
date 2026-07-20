@@ -81,6 +81,23 @@
         <div id="games" class="game-grid" aria-live="polite"></div>
       </section>
 
+      <section class="learning-panel" aria-label="Postgame learning">
+        <div class="operation-heading">
+          <div>
+            <p class="eyebrow">Postgame learning</p>
+            <h2>Future evidence, never rewritten.</h2>
+            <p id="learning-note" class="muted">Loading future-game evidence…</p>
+          </div>
+          <span id="learning-status" class="system-pill">Checking sample</span>
+        </div>
+        <div class="learning-grid">
+          <article><span>Settled future games</span><strong id="learning-games">—</strong><small>200 required for retraining decisions</small></article>
+          <article><span>v0.36 log loss</span><strong id="learning-log-loss">Pending</strong><small id="learning-accuracy">No settled games</small></article>
+          <article><span>Shadow comparison</span><strong id="shadow-advantage">Pending</strong><small id="shadow-sample">No comparable games</small></article>
+          <article><span>Drift monitor</span><strong id="drift-status">Waiting</strong><small>Activates after 100 games</small></article>
+        </div>
+      </section>
+
       <section class="history" aria-label="Season results">
         <div class="section-heading">
           <div>
@@ -116,7 +133,7 @@
     </dialog>
 
     <footer>
-      <span>MLBAI v0.36</span>
+      <span>MLBAI v0.37</span>
       <span>Educational model · Not betting advice</span>
     </footer>
     <script src="/app.js" defer></script>

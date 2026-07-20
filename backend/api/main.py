@@ -22,6 +22,7 @@ CALIBRATION_REPORT_PATH = PROJECT_ROOT / "docs" / "calibration_audit_report.json
 CONTEXT_DEPLOYMENT_REPORT_PATH = PROJECT_ROOT / "docs" / "context_model_upgrade_report.json"
 EXPECTED_RUNS_REPORT_PATH = PROJECT_ROOT / "docs" / "expected_runs_validation_report.json"
 OUTCOME_AUDIT_REPORT_PATH = PROJECT_ROOT / "docs" / "outcome_uncertainty_audit_report.json"
+POSTGAME_REPORT_PATH = PROCESSED_DATA_DIR / "postgame_learning_report.json"
 LEDGER_PATH = PROJECT_ROOT / "data" / "prediction_ledger.sqlite3"
 FRONTEND_DIR = PROJECT_ROOT / "frontend"
 
@@ -92,7 +93,7 @@ class ResultsResponse(BaseModel):
 
 app = FastAPI(
     title="MLBAI API",
-    version="0.36.0",
+    version="0.37.0",
     description="Read-only access to MLBAI game analysis and model tracking.",
 )
 app.add_middleware(
@@ -176,6 +177,11 @@ def calibration() -> dict[str, Any]:
 @app.get("/api/v1/context-validation")
 def context_validation() -> dict[str, Any]:
     return load_json(CONTEXT_DEPLOYMENT_REPORT_PATH)
+
+
+@app.get("/api/v1/postgame-learning")
+def postgame_learning() -> dict[str, Any]:
+    return load_json(POSTGAME_REPORT_PATH)
 
 
 @app.get("/api/v1/score-model")

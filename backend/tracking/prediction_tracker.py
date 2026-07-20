@@ -73,6 +73,21 @@ def connect_database(path: Path) -> sqlite3.Connection:
             projection_hash TEXT NOT NULL UNIQUE,
             CHECK (ABS(away_expected_runs + home_expected_runs - expected_total_runs) < 0.021)
         );
+        CREATE TABLE IF NOT EXISTS shadow_predictions (
+            game_id TEXT PRIMARY KEY REFERENCES predictions(game_id),
+            model_version TEXT NOT NULL,
+            away_win_probability REAL NOT NULL CHECK (away_win_probability BETWEEN 0 AND 1),
+            home_win_probability REAL NOT NULL CHECK (home_win_probability BETWEEN 0 AND 1),
+            model_lean TEXT NOT NULL,
+            recorded_at_utc TEXT NOT NULL,
+            CHECK (ABS(away_win_probability + home_win_probability - 1.0) < 0.0002)
+        );
+        CREATE TABLE IF NOT EXISTS prediction_context (
+            game_id TEXT PRIMARY KEY REFERENCES predictions(game_id),
+            model_version TEXT NOT NULL,
+            factors_json TEXT NOT NULL,
+            recorded_at_utc TEXT NOT NULL
+        );
         CREATE TRIGGER IF NOT EXISTS predictions_no_update
         BEFORE UPDATE ON predictions BEGIN
             SELECT RAISE(ABORT, 'prediction records are immutable');
@@ -96,6 +111,22 @@ def connect_database(path: Path) -> sqlite3.Connection:
         CREATE TRIGGER IF NOT EXISTS score_projections_no_delete
         BEFORE DELETE ON score_projections BEGIN
             SELECT RAISE(ABORT, 'score projection records are immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS shadow_predictions_no_update
+        BEFORE UPDATE ON shadow_predictions BEGIN
+            SELECT RAISE(ABORT, 'shadow predictions are immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS shadow_predictions_no_delete
+        BEFORE DELETE ON shadow_predictions BEGIN
+            SELECT RAISE(ABORT, 'shadow predictions are immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS prediction_context_no_update
+        BEFORE UPDATE ON prediction_context BEGIN
+            SELECT RAISE(ABORT, 'prediction context is immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS prediction_context_no_delete
+        BEFORE DELETE ON prediction_context BEGIN
+            SELECT RAISE(ABORT, 'prediction context is immutable');
         END;
         """
     )
@@ -165,11 +196,16 @@ def record_predictions(
     connection: sqlite3.Connection,
     rows: list[dict[str, str]],
     now: datetime | None = None,
+    *,
+    shadow_rows: dict[str, dict[str, Any]] | None = None,
+    learning_context: dict[str, dict[str, Any]] | None = None,
+    model_version: str = "v0.36",
 ) -> dict[str, int]:
     """Insert only new pregame records; never replace an existing prediction."""
     now = (now or datetime.now(UTC)).astimezone(UTC)
     recorded = reused = skipped_after_start = 0
     score_recorded = score_reused = score_skipped_after_start = 0
+    shadow_recorded = context_recorded = 0
     latest = connection.execute(
         "SELECT record_hash FROM predictions ORDER BY rowid DESC LIMIT 1"
     ).fetchone()
@@ -228,6 +264,30 @@ def record_predictions(
         recorded += 1
         score_status = _record_score_projection(connection, row, recorded_at)
         score_recorded += int(score_status == "recorded")
+        shadow = (shadow_rows or {}).get(str(row["game_id"]))
+        if shadow:
+            connection.execute(
+                "INSERT INTO shadow_predictions VALUES (?, ?, ?, ?, ?, ?)",
+                (
+                    str(row["game_id"]),
+                    str(shadow.get("model_version", "team_only_v0.30")),
+                    float(shadow["away_win_probability"]),
+                    float(shadow["home_win_probability"]),
+                    str(shadow["model_lean"]),
+                    recorded_at,
+                ),
+            )
+            shadow_recorded += 1
+        context = (learning_context or {}).get(str(row["game_id"]))
+        if context:
+            factors = list(context.get("strongest_supporting_factors", [])) + list(
+                context.get("strongest_opposing_factors", [])
+            )
+            connection.execute(
+                "INSERT INTO prediction_context VALUES (?, ?, ?, ?)",
+                (str(row["game_id"]), model_version, json.dumps(factors), recorded_at),
+            )
+            context_recorded += 1
     connection.commit()
     return {
         "recorded": recorded,
@@ -236,6 +296,8 @@ def record_predictions(
         "score_recorded": score_recorded,
         "score_reused": score_reused,
         "score_skipped_after_start": score_skipped_after_start,
+        "shadow_recorded": shadow_recorded,
+        "context_recorded": context_recorded,
     }
 
 

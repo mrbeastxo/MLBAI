@@ -79,6 +79,12 @@ h1 span { color: var(--accent); }
 .calibration-metrics article { padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
 .calibration-metrics span { display: block; color: var(--muted); font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; }
 .calibration-metrics strong { display: block; margin-top: 7px; font-size: 1.25rem; text-transform: capitalize; }
+.learning-panel { margin-top: 18px; padding: 28px; border: 1px solid var(--line); border-radius: 14px; background: rgba(17, 24, 22, .52); }
+.learning-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 22px; }
+.learning-grid article { padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.learning-grid span, .learning-grid small { display: block; color: var(--muted); }
+.learning-grid span { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; }
+.learning-grid strong { display: block; margin: 7px 0 5px; font-size: 1.25rem; }
 
 .board { padding: 72px 0 40px; }
 .section-heading { display: flex; justify-content: space-between; align-items: end; margin-bottom: 24px; }
@@ -186,13 +192,14 @@ footer { display: flex; justify-content: space-between; padding: 30px 0 45px; bo
   .game-grid { grid-template-columns: 1fr 1fr; }
   .operation-grid { grid-template-columns: 1fr 1fr; }
   .calibration-panel { grid-template-columns: 1fr; }
+  .learning-grid { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 570px) {
   .site-header, main, footer { width: min(100% - 24px, 1180px); }
   .status { font-size: 0; }
   .status-dot { margin: 0; }
-  .metrics, .game-grid, .factor-columns, .operation-grid, .calibration-metrics, .context-grid { grid-template-columns: 1fr; }
+  .metrics, .game-grid, .factor-columns, .operation-grid, .calibration-metrics, .learning-grid, .context-grid { grid-template-columns: 1fr; }
   .operation-heading { display: block; }
   .system-pill { display: inline-block; margin-top: 18px; }
   .metrics article { border-right: 0; border-bottom: 1px solid var(--line); }

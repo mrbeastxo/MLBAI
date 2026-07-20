@@ -43,6 +43,11 @@ from ml.predict_daily import MODEL_PATH, PREDICTION_FIELDS, predict_rows
 from ml.expected_runs import MODEL_PATH as SCORE_MODEL_PATH
 from ml.predict_scores import attach_scores, predict_scores
 from ml.outcome_uncertainty import attach_uncertainty
+from ml.postgame_learning import (
+    REPORT_PATH as LEARNING_REPORT_PATH,
+    SHADOW_MODEL_PATH,
+    learning_report,
+)
 
 PROCESSED_DATA_DIR = PROJECT_ROOT / "data" / "processed"
 FetchSchedule = Callable[[date], dict[str, Any]]
@@ -113,6 +118,7 @@ def run_daily(
     model_path: Path = MODEL_PATH,
     model_report_path: Path = DEFAULT_REPORT,
     score_model_path: Path | None = SCORE_MODEL_PATH,
+    shadow_model_path: Path | None = SHADOW_MODEL_PATH,
     output_dir: Path = PROCESSED_DATA_DIR,
     now: datetime | None = None,
     dry_run: bool = False,
@@ -143,6 +149,7 @@ def run_daily(
         feature_path = output_dir / f"pregame_features_{run_date.isoformat()}.csv"
 
         predictions: list[dict[str, Any]] = []
+        shadow_predictions: dict[str, dict[str, Any]] = {}
         analyses: list[dict[str, Any]] = []
         pitcher_rows: list[dict[str, Any]] = []
         bullpen_rows: list[dict[str, Any]] = []
@@ -163,6 +170,12 @@ def run_daily(
             model_report = json.loads(model_report_path.read_text(encoding="utf-8"))
             predictions = predict_rows(features, artifact)
             analyses = explain_rows(features, artifact, model_report)
+            if shadow_model_path is not None and shadow_model_path.is_file():
+                shadow_artifact = joblib.load(shadow_model_path)
+                shadow_predictions = {
+                    str(row["game_id"]): {**row, "model_version": "team_only_v0.30"}
+                    for row in predict_rows(features, shadow_artifact)
+                }
             if score_model_path is not None and score_model_path.is_file():
                 score_artifact = joblib.load(score_model_path)
                 score_predictions = predict_scores(features, score_artifact)
@@ -222,9 +235,18 @@ def run_daily(
                 "score_recorded": 0,
                 "score_reused": 0,
                 "score_skipped_after_start": 0,
+                "shadow_recorded": 0,
+                "context_recorded": 0,
             }
             if dry_run
-            else record_predictions(connection, predictions, now)
+            else record_predictions(
+                connection,
+                predictions,
+                now,
+                shadow_rows=shadow_predictions,
+                learning_context={str(row["game_id"]): row for row in analyses},
+                model_version="v0.36",
+            )
         )
         season_results = build_season_results(season_payload, connection)
         season_results_path = save_season_results(
@@ -232,6 +254,8 @@ def run_daily(
         )
         report = performance_report(connection)
         write_json(output_dir / REPORT_PATH.name, report)
+        postgame = learning_report(connection)
+        write_json(output_dir / LEARNING_REPORT_PATH.name, postgame)
         summary.update(
             {
                 "status": "success",
@@ -246,6 +270,11 @@ def run_daily(
                 "lineup_context": lineup_coverage,
                 "tracking": tracking,
                 "performance": report,
+                "postgame_learning": {
+                    "settled_future_games": postgame["settled_future_games"],
+                    "sample_status": postgame["sample_status"],
+                    "drift_flag": postgame["drift_flag"],
+                },
                 "outputs": {
                     "features": display_path(feature_path),
                     "predictions": display_path(prediction_path),

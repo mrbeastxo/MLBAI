@@ -36,6 +36,7 @@ def test_prediction_is_immutable_and_hash_chain_valid(tmp_path) -> None:
     summary = record_predictions(connection, [prediction()], now)
     assert summary["recorded"] == 1
     assert summary["score_recorded"] == 1
+    assert summary["shadow_recorded"] == 0
     assert verify_hash_chain(connection)
     assert verify_score_projection_hashes(connection)
     with pytest.raises(ValueError, match="differs"):
