@@ -132,3 +132,12 @@ def test_calibration_report_endpoint(tmp_path, monkeypatch):
     response = TestClient(main.app).get("/api/v1/calibration")
     assert response.status_code == 200
     assert response.json()["deployment"]["decision"] == "reject"
+
+
+def test_context_validation_endpoint(tmp_path, monkeypatch):
+    report = tmp_path / "context.json"
+    report.write_text(json.dumps({"decision": "context_only"}))
+    monkeypatch.setattr(main, "CONTEXT_DEPLOYMENT_REPORT_PATH", report)
+    response = TestClient(main.app).get("/api/v1/context-validation")
+    assert response.status_code == 200
+    assert response.json()["decision"] == "context_only"

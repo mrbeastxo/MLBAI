@@ -60,6 +60,17 @@ function factorList(items, emptyText) {
     </div>`).join("")}</div>`;
 }
 
+function starterCard(side, starter) {
+  if (!starter?.announced) return `<div class="context-card"><span>${side} starter</span><strong>Not announced</strong><small>MLB has not confirmed a probable starter.</small></div>`;
+  const stats = [starter.era ? `ERA ${starter.era}` : null, starter.whip ? `WHIP ${starter.whip}` : null, starter.days_rest != null ? `${starter.days_rest} days rest` : null].filter(Boolean).join(" · ");
+  return `<div class="context-card"><span>${side} starter</span><strong>${escapeHtml(starter.name || "Unknown")}</strong><small>${escapeHtml(stats || "Season stats unavailable")}</small></div>`;
+}
+
+function bullpenCard(side, bullpen) {
+  if (!bullpen?.available) return `<div class="context-card"><span>${side} bullpen</span><strong>Unavailable</strong><small>Workload snapshot was not available.</small></div>`;
+  return `<div class="context-card"><span>${side} bullpen</span><strong>Workload ${escapeHtml(bullpen.workload_index)}</strong><small>${escapeHtml(bullpen.pitches_last_3_days)} pitches in 3 days · ${escapeHtml(bullpen.relievers_back_to_back)} back-to-back</small></div>`;
+}
+
 function showGame(game) {
   const leanProbability = game.model_lean === game.home_team ? game.home_win_probability : game.away_win_probability;
   dialogContent.innerHTML = `
@@ -76,6 +87,16 @@ function showGame(game) {
         <section><h4>Supporting the lean</h4>${factorList(game.strongest_supporting_factors, "No strong supporting factor.")}</section>
         <section><h4>Working against it</h4>${factorList(game.strongest_opposing_factors, "No strong opposing factor.")}</section>
       </div>
+      ${game.matchup_context ? `<section class="context-section">
+        <div class="context-title"><h4>Pitching context</h4><span>Context only · not in probability</span></div>
+        <div class="context-grid">
+          ${starterCard("Away", game.matchup_context.away_starter)}
+          ${starterCard("Home", game.matchup_context.home_starter)}
+          ${bullpenCard("Away", game.matchup_context.away_bullpen)}
+          ${bullpenCard("Home", game.matchup_context.home_bullpen)}
+        </div>
+        <p class="muted context-note">${escapeHtml(game.matchup_context.note)}</p>
+      </section>` : ""}
       <p class="reliability">${escapeHtml(game.reliability_note)}</p>
     </article>`;
   dialog.showModal();

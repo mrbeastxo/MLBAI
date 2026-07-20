@@ -1,0 +1,22 @@
+{
+  "decision": "context_only",
+  "probability_model_changed": false,
+  "minimum_games_per_season": 1000,
+  "available_games_by_validation_season": {
+    "2024": 250,
+    "2023": 222,
+    "2025": 257
+  },
+  "gates": {
+    "coverage_pass": false,
+    "pitcher_model_beats_baseline_log_loss": false,
+    "combined_model_beats_baseline_log_loss": false
+  },
+  "test_metrics": {
+    "pitcher_model_log_loss": 0.7275,
+    "pitcher_baseline_log_loss": 0.7012,
+    "combined_model_log_loss": 0.7591,
+    "combined_baseline_log_loss": 0.7012
+  },
+  "reason": "Historical coverage and validation are not strong enough; live pitcher and bullpen data is analysis context only."
+}

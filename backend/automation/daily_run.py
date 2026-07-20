@@ -14,6 +14,10 @@ import requests
 
 from backend.data_pipeline.historical_training import fetch_season_games
 from backend.data_pipeline.mlb_schedule import PROJECT_ROOT, fetch_schedule, parse_date
+from backend.data_pipeline.matchup_context import (
+    attach_matchup_context,
+    collect_context_snapshot,
+)
 from backend.data_pipeline.pregame_features import PREGAME_FIELDS, build_pregame_rows
 from backend.history.season_results import build_season_results, save_season_results
 from backend.tracking.prediction_tracker import (
@@ -31,6 +35,10 @@ from ml.predict_daily import MODEL_PATH, PREDICTION_FIELDS, predict_rows
 PROCESSED_DATA_DIR = PROJECT_ROOT / "data" / "processed"
 FetchSchedule = Callable[[date], dict[str, Any]]
 FetchSeason = Callable[[int, date], dict[str, Any]]
+ContextFetcher = Callable[
+    [int, date],
+    tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]],
+]
 
 
 def pending_dates(connection, before: date) -> list[date]:
@@ -95,6 +103,7 @@ def run_daily(
     dry_run: bool = False,
     season_fetcher: FetchSeason = fetch_season_games,
     schedule_fetcher: FetchSchedule = fetch_schedule,
+    context_fetcher: ContextFetcher = collect_context_snapshot,
 ) -> dict[str, Any]:
     """Execute one restart-safe daily run and return its audit summary."""
     now = (now or datetime.now(UTC)).astimezone(UTC)
@@ -129,6 +138,22 @@ def run_daily(
             predictions = predict_rows(features, artifact)
             analyses = explain_rows(features, artifact, model_report)
 
+        context_coverage: dict[str, Any] = {
+            "possible_team_sides": len(analyses) * 2,
+            "announced_starters": 0,
+            "starter_coverage": 0.0,
+            "available_bullpens": 0,
+            "bullpen_coverage": 0.0,
+            "errors": [],
+        }
+        if analyses:
+            pitcher_rows, bullpen_rows, context_errors = context_fetcher(
+                run_date.year, run_date
+            )
+            analyses, context_coverage = attach_matchup_context(
+                analyses, pitcher_rows, bullpen_rows, context_errors
+            )
+
         prediction_path = output_dir / f"predictions_{run_date.isoformat()}.csv"
         analysis_path = output_dir / f"analysis_{run_date.isoformat()}.json"
         write_csv(prediction_path, PREDICTION_FIELDS, predictions)
@@ -151,6 +176,7 @@ def run_daily(
                 "scheduled_games": len(features),
                 "predictions_generated": len(predictions),
                 "completed_season_games": len(season_results),
+                "matchup_context": context_coverage,
                 "tracking": tracking,
                 "performance": report,
                 "outputs": {

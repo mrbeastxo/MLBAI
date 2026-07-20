@@ -32,6 +32,7 @@ reliable and testable.
 - Read-only automation health, run history, log, and storage monitoring
 - Complete current-season results archive with verified prediction comparisons
 - Development-only probability calibration audit with strict deployment gates
+- Live starting-pitcher and bullpen context with validation-based deployment gate
 - Human-readable game list in the terminal
 - Raw JSON snapshots saved under `data/raw/`
 - Starter automated tests
@@ -299,6 +300,18 @@ python -m ml.calibration_audit \
 The calibrator is fit only on development out-of-fold predictions. Deployment
 requires at least 0.001 lower audit log loss, no worse Brier score, and no more
 than a 0.005 accuracy decrease. A rejected candidate never changes production.
+
+Pitcher and bullpen deployment is evaluated with:
+
+```bash
+python -m ml.context_feature_gate
+```
+
+The current historical pilot does not meet full-season coverage or log-loss
+quality gates, so these signals are displayed as analysis context only. The
+daily workflow collects announced starters, season pitching stats, rest,
+recent workload, and three-day bullpen fatigue without changing the validated
+win probability. The dashboard labels this distinction explicitly.
 
 ## Test
 
