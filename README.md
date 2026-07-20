@@ -252,7 +252,7 @@ it is safe: immutable predictions are reused, never overwritten. Use
 `--date YYYY-MM-DD` for a specific date or `--dry-run` to generate outputs
 without adding predictions to the ledger.
 
-Schedule that workflow for 6:00 AM local time every day on macOS:
+Schedule that workflow for 9:00 PM local time every day on macOS:
 
 ```bash
 python -m backend.automation.macos_scheduler install

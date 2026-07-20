@@ -26,7 +26,7 @@ def validate_time(hour: int, minute: int) -> None:
         raise ValueError("minute must be between 0 and 59")
 
 
-def launch_agent_config(hour: int = 6, minute: int = 0) -> dict[str, Any]:
+def launch_agent_config(hour: int = 21, minute: int = 0) -> dict[str, Any]:
     validate_time(hour, minute)
     return {
         "Label": LABEL,
@@ -89,7 +89,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
     install_parser = subparsers.add_parser("install")
-    install_parser.add_argument("--hour", type=int, default=6)
+    install_parser.add_argument("--hour", type=int, default=21)
     install_parser.add_argument("--minute", type=int, default=0)
     install_parser.add_argument("--plist", type=Path, default=DEFAULT_PLIST)
     status_parser = subparsers.add_parser("status")
