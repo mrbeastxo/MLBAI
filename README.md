@@ -22,6 +22,7 @@ reliable and testable.
 - Pitcher-feature joins with explicit matchup and history coverage
 - Historical bullpen performance and workload from cached box scores
 - Development-fold model selection with one untouched-season test
+- Refit production model and daily rolling win-probability pipeline
 - Human-readable game list in the terminal
 - Raw JSON snapshots saved under `data/raw/`
 - Starter automated tests
@@ -179,6 +180,18 @@ python -m ml.model_comparison \
 
 Selection uses mean development-fold log loss. Only the winner is evaluated on
 the untouched newest season.
+
+After model selection, refit on all evaluated seasons, build today's rolling
+features, and generate estimates:
+
+```bash
+python -m ml.train_production --data data/processed/training_games_2022-04-07_2022-10-05.csv data/processed/training_games_2023-03-30_2023-10-01.csv data/processed/training_games_2024-03-20_2024-09-30.csv data/processed/training_games_2025-03-27_2025-09-28.csv
+python -m backend.data_pipeline.pregame_features --date 2026-07-20
+python -m ml.predict_daily --features data/processed/pregame_features_2026-07-20.csv
+```
+
+Daily probabilities are model estimates, not guaranteed outcomes or betting
+advice. Same-day results are excluded from the rolling feature history.
 
 The command prints the games it finds and saves the complete API response to
 `data/raw/schedule_YYYY-MM-DD.json`.
