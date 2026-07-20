@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import csv
 from datetime import date
+from pathlib import Path
 from typing import Any
 
 import requests
@@ -12,9 +14,17 @@ from backend.data_pipeline.bullpen_workload import (
     save_bullpen_snapshot,
 )
 from backend.data_pipeline.starting_pitchers import (
+    PROCESSED_DATA_DIR,
     collect_starting_pitchers,
     save_starting_pitchers,
 )
+
+
+def _cached_rows(path: Path) -> list[dict[str, Any]]:
+    if not path.is_file():
+        return []
+    with path.open(encoding="utf-8", newline="") as csv_file:
+        return list(csv.DictReader(csv_file))
 
 
 def collect_context_snapshot(
@@ -29,11 +39,17 @@ def collect_context_snapshot(
         save_starting_pitchers(pitcher_rows, game_date)
     except requests.RequestException as error:
         errors.append(f"starting_pitchers: {error}")
+        pitcher_rows = _cached_rows(
+            PROCESSED_DATA_DIR / f"starting_pitchers_{game_date.isoformat()}.csv"
+        )
     try:
         bullpen_rows = collect_bullpen_snapshot(season, game_date)
         save_bullpen_snapshot(bullpen_rows, game_date)
     except requests.RequestException as error:
         errors.append(f"bullpen_workload: {error}")
+        bullpen_rows = _cached_rows(
+            PROCESSED_DATA_DIR / f"bullpen_workload_{game_date.isoformat()}.csv"
+        )
     return pitcher_rows, bullpen_rows, errors
 
 

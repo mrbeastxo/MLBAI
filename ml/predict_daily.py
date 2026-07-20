@@ -23,6 +23,9 @@ PREDICTION_FIELDS = [
     "away_win_probability",
     "home_win_probability",
     "model_lean",
+    "away_expected_runs",
+    "home_expected_runs",
+    "expected_total_runs",
 ]
 
 

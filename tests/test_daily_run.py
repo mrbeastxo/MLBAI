@@ -101,6 +101,7 @@ def test_dry_run_does_not_write_predictions_to_ledger(tmp_path, monkeypatch) -> 
         database_path=database,
         model_path=model,
         model_report_path=model_report,
+        score_model_path=None,
         output_dir=output,
         now=datetime(2026, 7, 20, 10, tzinfo=UTC),
         dry_run=True,

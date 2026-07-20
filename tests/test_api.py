@@ -141,3 +141,12 @@ def test_context_validation_endpoint(tmp_path, monkeypatch):
     response = TestClient(main.app).get("/api/v1/context-validation")
     assert response.status_code == 200
     assert response.json()["decision"] == "context_only"
+
+
+def test_score_model_report_endpoint(tmp_path, monkeypatch):
+    report = tmp_path / "scores.json"
+    report.write_text(json.dumps({"model": "paired_poisson_regression"}))
+    monkeypatch.setattr(main, "EXPECTED_RUNS_REPORT_PATH", report)
+    response = TestClient(main.app).get("/api/v1/score-model")
+    assert response.status_code == 200
+    assert response.json()["model"] == "paired_poisson_regression"

@@ -46,6 +46,9 @@ function gameCard(game) {
           <span class="probability">${percent(game.home_win_probability)}</span>
         </span>
       </span>
+      ${game.away_expected_runs != null && game.home_expected_runs != null
+        ? `<span class="projected-score">Projected score · ${game.away_expected_runs.toFixed(1)}–${game.home_expected_runs.toFixed(1)}</span>`
+        : ""}
       <span class="confidence-track"><span class="confidence-fill" style="width:${maxProbability * 100}%"></span></span>
       <span class="card-footer"><span>${escapeHtml(label(game.certainty_band))}</span><span>View analysis →</span></span>
     </button>`;
@@ -83,6 +86,11 @@ function showGame(game) {
         <strong>${escapeHtml(game.model_lean)} · ${percent(leanProbability)}</strong>
         <span>${escapeHtml(label(game.certainty_band))} · ${escapeHtml(label(game.evidence_grade))}</span>
       </div>
+      ${game.away_expected_runs != null && game.home_expected_runs != null ? `<div class="score-projection">
+        <span>Expected runs</span>
+        <strong>${escapeHtml(game.away_team)} ${game.away_expected_runs.toFixed(1)} · ${escapeHtml(game.home_team)} ${game.home_expected_runs.toFixed(1)}</strong>
+        <small>Projected total ${game.expected_total_runs.toFixed(1)} · model average, not an exact score</small>
+      </div>` : ""}
       <div class="factor-columns">
         <section><h4>Supporting the lean</h4>${factorList(game.strongest_supporting_factors, "No strong supporting factor.")}</section>
         <section><h4>Working against it</h4>${factorList(game.strongest_opposing_factors, "No strong opposing factor.")}</section>

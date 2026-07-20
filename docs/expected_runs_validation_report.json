@@ -1,0 +1,106 @@
+{
+  "model": "paired_poisson_regression",
+  "validation_method": "expanding_window_by_complete_season",
+  "features": [
+    "win_percentage_home_minus_away",
+    "runs_per_game_home_minus_away",
+    "runs_allowed_per_game_home_minus_away",
+    "run_differential_per_game_home_minus_away",
+    "last_10_win_percentage_home_minus_away",
+    "last_10_run_differential_home_minus_away",
+    "venue_win_percentage_home_minus_away",
+    "schedule_load_home_minus_away",
+    "last_30_win_percentage_home_minus_away",
+    "last_30_run_differential_home_minus_away",
+    "pythagorean_expectation_home_minus_away",
+    "streak_home_minus_away",
+    "elo_rating_home_minus_away"
+  ],
+  "development_folds": [
+    {
+      "train_seasons": [
+        2022
+      ],
+      "validation_season": 2023,
+      "train_games": 2430,
+      "test_games": 2430,
+      "model_metrics": {
+        "mae": 2.4725,
+        "rmse": 3.2037,
+        "mean_poisson_deviance": 2.3084
+      },
+      "league_average_baseline": {
+        "away_runs": 4.2523,
+        "home_runs": 4.3144,
+        "metrics": {
+          "mae": 2.511,
+          "rmse": 3.2359,
+          "mean_poisson_deviance": 2.3538
+        }
+      },
+      "mean_projected_total": 8.565,
+      "mean_actual_total": 9.231
+    },
+    {
+      "train_seasons": [
+        2022,
+        2023
+      ],
+      "validation_season": 2024,
+      "train_games": 4860,
+      "test_games": 2429,
+      "model_metrics": {
+        "mae": 2.4238,
+        "rmse": 3.0692,
+        "mean_poisson_deviance": 2.23
+      },
+      "league_average_baseline": {
+        "away_runs": 4.4436,
+        "home_runs": 4.4553,
+        "metrics": {
+          "mae": 2.4533,
+          "rmse": 3.0868,
+          "mean_poisson_deviance": 2.2545
+        }
+      },
+      "mean_projected_total": 8.898,
+      "mean_actual_total": 8.787
+    }
+  ],
+  "final_untouched_test": {
+    "train_seasons": [
+      2022,
+      2023,
+      2024
+    ],
+    "validation_season": 2025,
+    "train_games": 7289,
+    "test_games": 2428,
+    "model_metrics": {
+      "mae": 2.5195,
+      "rmse": 3.2311,
+      "mean_poisson_deviance": 2.3924
+    },
+    "league_average_baseline": {
+      "away_runs": 4.4326,
+      "home_runs": 4.429,
+      "metrics": {
+        "mae": 2.5402,
+        "rmse": 3.2473,
+        "mean_poisson_deviance": 2.4148
+      }
+    },
+    "mean_projected_total": 8.85,
+    "mean_actual_total": 8.896
+  },
+  "production_refit": {
+    "seasons": [
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "games": 9717
+  },
+  "interpretation": "Projected scores are conditional means, not exact score forecasts."
+}

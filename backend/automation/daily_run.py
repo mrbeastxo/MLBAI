@@ -31,6 +31,8 @@ from backend.tracking.prediction_tracker import (
 )
 from ml.explain_daily import DEFAULT_REPORT, explain_rows
 from ml.predict_daily import MODEL_PATH, PREDICTION_FIELDS, predict_rows
+from ml.expected_runs import MODEL_PATH as SCORE_MODEL_PATH
+from ml.predict_scores import attach_scores, predict_scores
 
 PROCESSED_DATA_DIR = PROJECT_ROOT / "data" / "processed"
 FetchSchedule = Callable[[date], dict[str, Any]]
@@ -98,6 +100,7 @@ def run_daily(
     database_path: Path = DEFAULT_DATABASE,
     model_path: Path = MODEL_PATH,
     model_report_path: Path = DEFAULT_REPORT,
+    score_model_path: Path | None = SCORE_MODEL_PATH,
     output_dir: Path = PROCESSED_DATA_DIR,
     now: datetime | None = None,
     dry_run: bool = False,
@@ -137,6 +140,11 @@ def run_daily(
             model_report = json.loads(model_report_path.read_text(encoding="utf-8"))
             predictions = predict_rows(features, artifact)
             analyses = explain_rows(features, artifact, model_report)
+            if score_model_path is not None and score_model_path.is_file():
+                score_artifact = joblib.load(score_model_path)
+                score_predictions = predict_scores(features, score_artifact)
+                predictions = attach_scores(predictions, score_predictions)
+                analyses = attach_scores(analyses, score_predictions)
 
         context_coverage: dict[str, Any] = {
             "possible_team_sides": len(analyses) * 2,
@@ -175,6 +183,9 @@ def run_daily(
                 "status": "success",
                 "scheduled_games": len(features),
                 "predictions_generated": len(predictions),
+                "score_projections_generated": sum(
+                    "away_expected_runs" in prediction for prediction in predictions
+                ),
                 "completed_season_games": len(season_results),
                 "matchup_context": context_coverage,
                 "tracking": tracking,
@@ -211,6 +222,7 @@ def main() -> None:
     parser.add_argument("--database", type=Path, default=DEFAULT_DATABASE)
     parser.add_argument("--model", type=Path, default=MODEL_PATH)
     parser.add_argument("--model-report", type=Path, default=DEFAULT_REPORT)
+    parser.add_argument("--score-model", type=Path, default=SCORE_MODEL_PATH)
     parser.add_argument(
         "--dry-run",
         action="store_true",
@@ -223,6 +235,7 @@ def main() -> None:
             database_path=args.database,
             model_path=args.model,
             model_report_path=args.model_report,
+            score_model_path=args.score_model,
             dry_run=args.dry_run,
         )
     except (OSError, ValueError, requests.RequestException) as error:

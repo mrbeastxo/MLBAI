@@ -331,6 +331,24 @@ python -m ml.pitching_probability_candidate \
   --test-season 2025
 ```
 
+### Milestone 27: expected runs
+
+MLBAI trains separate Poisson-regression models for away and home scoring and
+shows their conditional mean as a projected score. Validation remains
+chronological by complete season. On the untouched 2025 test, the model reduced
+mean absolute run error from 2.5402 to 2.5195 and mean Poisson deviance from
+2.4148 to 2.3924 versus league-average home/away scoring baselines. Projected
+scores are model averages—not promises of an exact final score.
+
+```bash
+python -m ml.expected_runs \
+  --data data/processed/training_games_2022-04-07_2022-10-05.csv \
+         data/processed/training_games_2023-03-30_2023-10-01.csv \
+         data/processed/training_games_2024-03-20_2024-09-30.csv \
+         data/processed/training_games_2025-03-27_2025-09-28.csv \
+  --test-season 2025
+```
+
 ## Test
 
 ```bash

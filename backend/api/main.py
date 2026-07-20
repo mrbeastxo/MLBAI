@@ -20,6 +20,7 @@ PROCESSED_DATA_DIR = PROJECT_ROOT / "data" / "processed"
 MODEL_REPORT_PATH = PROJECT_ROOT / "docs" / "model_comparison_report.json"
 CALIBRATION_REPORT_PATH = PROJECT_ROOT / "docs" / "calibration_audit_report.json"
 CONTEXT_DEPLOYMENT_REPORT_PATH = PROJECT_ROOT / "docs" / "pitching_probability_candidate_report.json"
+EXPECTED_RUNS_REPORT_PATH = PROJECT_ROOT / "docs" / "expected_runs_validation_report.json"
 LEDGER_PATH = PROJECT_ROOT / "data" / "prediction_ledger.sqlite3"
 FRONTEND_DIR = PROJECT_ROOT / "frontend"
 
@@ -50,6 +51,10 @@ class GameAnalysis(BaseModel):
     strongest_supporting_factors: list[Factor]
     strongest_opposing_factors: list[Factor]
     reliability_note: str
+    away_expected_runs: float | None = None
+    home_expected_runs: float | None = None
+    expected_total_runs: float | None = None
+    score_projection_note: str | None = None
     matchup_context: dict[str, Any] | None = None
 
 
@@ -78,7 +83,7 @@ class ResultsResponse(BaseModel):
 
 app = FastAPI(
     title="MLBAI API",
-    version="0.26.0",
+    version="0.27.0",
     description="Read-only access to MLBAI game analysis and model tracking.",
 )
 app.add_middleware(
@@ -162,6 +167,11 @@ def calibration() -> dict[str, Any]:
 @app.get("/api/v1/context-validation")
 def context_validation() -> dict[str, Any]:
     return load_json(CONTEXT_DEPLOYMENT_REPORT_PATH)
+
+
+@app.get("/api/v1/score-model")
+def score_model() -> dict[str, Any]:
+    return load_json(EXPECTED_RUNS_REPORT_PATH)
 
 
 @app.get("/api/v1/system")
