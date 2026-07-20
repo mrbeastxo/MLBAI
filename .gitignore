@@ -1,0 +1,17 @@
+.DS_Store
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+.env
+
+# Downloaded data and trained models can be large or reproducible.
+data/raw/*
+data/processed/*
+models/*
+
+# Keep otherwise-empty project directories in Git.
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!models/.gitkeep
