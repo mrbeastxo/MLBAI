@@ -124,9 +124,14 @@ async function loadPerformance() {
     const data = await fetchJson("/api/v1/performance");
     document.querySelector("#tracked-count").textContent = data.settled_games + data.pending_games;
     document.querySelector("#accuracy").textContent = percent(data.accuracy);
+    document.querySelector("#score-mae").textContent = data.score_mae == null ? "Pending" : data.score_mae.toFixed(2);
+    document.querySelector("#score-sample").textContent = data.score_projection_games
+      ? `${data.score_projection_games} settled projection${data.score_projection_games === 1 ? "" : "s"}`
+      : "No settled projections";
     const integrity = document.querySelector("#ledger-status");
-    integrity.textContent = data.hash_chain_valid ? "Verified" : "Check failed";
-    integrity.classList.toggle("good", data.hash_chain_valid);
+    const valid = data.hash_chain_valid && data.score_projection_hashes_valid;
+    integrity.textContent = valid ? "Verified" : "Check failed";
+    integrity.classList.toggle("good", valid);
   } catch {
     document.querySelector("#ledger-status").textContent = "Unavailable";
   }

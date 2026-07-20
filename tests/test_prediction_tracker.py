@@ -9,6 +9,7 @@ from backend.tracking.prediction_tracker import (
     record_predictions,
     settle_results,
     verify_hash_chain,
+    verify_score_projection_hashes,
 )
 
 
@@ -23,18 +24,28 @@ def prediction(home_probability: str = "0.6") -> dict[str, str]:
         "away_win_probability": away_probability,
         "home_win_probability": home_probability,
         "model_lean": "Home",
+        "away_expected_runs": "3.5",
+        "home_expected_runs": "4.5",
+        "expected_total_runs": "8.0",
     }
 
 
 def test_prediction_is_immutable_and_hash_chain_valid(tmp_path) -> None:
     connection = connect_database(tmp_path / "ledger.sqlite3")
     now = datetime(2026, 7, 20, 10, tzinfo=UTC)
-    assert record_predictions(connection, [prediction()], now)["recorded"] == 1
+    summary = record_predictions(connection, [prediction()], now)
+    assert summary["recorded"] == 1
+    assert summary["score_recorded"] == 1
     assert verify_hash_chain(connection)
+    assert verify_score_projection_hashes(connection)
     with pytest.raises(ValueError, match="differs"):
         record_predictions(connection, [prediction("0.7")], now)
     with pytest.raises(sqlite3.IntegrityError, match="immutable"):
         connection.execute("UPDATE predictions SET home_team = 'Changed' WHERE game_id = '1'")
+    with pytest.raises(sqlite3.IntegrityError, match="immutable"):
+        connection.execute(
+            "UPDATE score_projections SET home_expected_runs = 9 WHERE game_id = '1'"
+        )
 
 
 def test_after_start_is_rejected_and_settled_metrics_are_correct(tmp_path) -> None:
@@ -54,3 +65,19 @@ def test_after_start_is_rejected_and_settled_metrics_are_correct(tmp_path) -> No
     assert report["settled_games"] == 1
     assert report["accuracy"] == 1.0
     assert report["brier_score"] == 0.16
+    assert report["score_projection_games"] == 1
+    assert report["score_mae"] == 1.0
+    assert report["score_rmse"] == 1.118
+    assert report["total_runs_mae"] == 1.0
+    assert report["score_projection_hashes_valid"] is True
+
+
+def test_score_projection_cannot_change_before_start(tmp_path) -> None:
+    connection = connect_database(tmp_path / "ledger.sqlite3")
+    now = datetime(2026, 7, 20, 10, tzinfo=UTC)
+    record_predictions(connection, [prediction()], now)
+    changed = prediction()
+    changed["home_expected_runs"] = "5.0"
+    changed["expected_total_runs"] = "8.5"
+    with pytest.raises(ValueError, match="Score projection.*differs"):
+        record_predictions(connection, [changed], now)

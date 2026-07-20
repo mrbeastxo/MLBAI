@@ -71,6 +71,11 @@ class PerformanceResponse(BaseModel):
     log_loss: float | None
     brier_score: float | None
     hash_chain_valid: bool
+    score_projection_games: int
+    score_mae: float | None
+    score_rmse: float | None
+    total_runs_mae: float | None
+    score_projection_hashes_valid: bool
 
 
 class ResultsResponse(BaseModel):
@@ -83,7 +88,7 @@ class ResultsResponse(BaseModel):
 
 app = FastAPI(
     title="MLBAI API",
-    version="0.27.0",
+    version="0.28.0",
     description="Read-only access to MLBAI game analysis and model tracking.",
 )
 app.add_middleware(

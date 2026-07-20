@@ -28,6 +28,11 @@ PREDICTION_COLUMNS = [
     "home_win_probability",
     "model_lean",
 ]
+SCORE_COLUMNS = [
+    "away_expected_runs",
+    "home_expected_runs",
+    "expected_total_runs",
+]
 
 
 def connect_database(path: Path) -> sqlite3.Connection:
@@ -59,6 +64,15 @@ def connect_database(path: Path) -> sqlite3.Connection:
             status TEXT NOT NULL,
             settled_at_utc TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS score_projections (
+            game_id TEXT PRIMARY KEY REFERENCES predictions(game_id),
+            away_expected_runs REAL NOT NULL CHECK (away_expected_runs >= 0),
+            home_expected_runs REAL NOT NULL CHECK (home_expected_runs >= 0),
+            expected_total_runs REAL NOT NULL CHECK (expected_total_runs >= 0),
+            recorded_at_utc TEXT NOT NULL,
+            projection_hash TEXT NOT NULL UNIQUE,
+            CHECK (ABS(away_expected_runs + home_expected_runs - expected_total_runs) < 0.021)
+        );
         CREATE TRIGGER IF NOT EXISTS predictions_no_update
         BEFORE UPDATE ON predictions BEGIN
             SELECT RAISE(ABORT, 'prediction records are immutable');
@@ -74,6 +88,14 @@ def connect_database(path: Path) -> sqlite3.Connection:
         CREATE TRIGGER IF NOT EXISTS results_no_delete
         BEFORE DELETE ON results BEGIN
             SELECT RAISE(ABORT, 'result records are immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS score_projections_no_update
+        BEFORE UPDATE ON score_projections BEGIN
+            SELECT RAISE(ABORT, 'score projection records are immutable');
+        END;
+        CREATE TRIGGER IF NOT EXISTS score_projections_no_delete
+        BEFORE DELETE ON score_projections BEGIN
+            SELECT RAISE(ABORT, 'score projection records are immutable');
         END;
         """
     )
@@ -96,6 +118,49 @@ def canonical_prediction(row: dict[str, Any], recorded_at: str, previous_hash: s
     return json.dumps(payload, sort_keys=True, separators=(",", ":"))
 
 
+def canonical_score_projection(row: dict[str, Any], recorded_at: str) -> str:
+    payload = {"game_id": str(row["game_id"])}
+    payload.update({column: float(row[column]) for column in SCORE_COLUMNS})
+    payload["recorded_at_utc"] = recorded_at
+    return json.dumps(payload, sort_keys=True, separators=(",", ":"))
+
+
+def _record_score_projection(
+    connection: sqlite3.Connection, row: dict[str, Any], recorded_at: str
+) -> str:
+    """Insert or verify one immutable score projection."""
+    if any(row.get(column) in (None, "") for column in SCORE_COLUMNS):
+        return "missing"
+    normalized = {column: float(row[column]) for column in SCORE_COLUMNS}
+    existing = connection.execute(
+        "SELECT * FROM score_projections WHERE game_id = ?", (row["game_id"],)
+    ).fetchone()
+    if existing:
+        if any(
+            not math.isclose(float(existing[column]), normalized[column], abs_tol=1e-9)
+            for column in SCORE_COLUMNS
+        ):
+            raise ValueError(
+                f"Score projection for game {row['game_id']} already exists and differs"
+            )
+        return "reused"
+    payload = {"game_id": row["game_id"], **normalized}
+    canonical = canonical_score_projection(payload, recorded_at)
+    projection_hash = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    connection.execute(
+        "INSERT INTO score_projections VALUES (?, ?, ?, ?, ?, ?)",
+        (
+            str(row["game_id"]),
+            normalized["away_expected_runs"],
+            normalized["home_expected_runs"],
+            normalized["expected_total_runs"],
+            recorded_at,
+            projection_hash,
+        ),
+    )
+    return "recorded"
+
+
 def record_predictions(
     connection: sqlite3.Connection,
     rows: list[dict[str, str]],
@@ -104,6 +169,7 @@ def record_predictions(
     """Insert only new pregame records; never replace an existing prediction."""
     now = (now or datetime.now(UTC)).astimezone(UTC)
     recorded = reused = skipped_after_start = 0
+    score_recorded = score_reused = score_skipped_after_start = 0
     latest = connection.execute(
         "SELECT record_hash FROM predictions ORDER BY rowid DESC LIMIT 1"
     ).fetchone()
@@ -118,9 +184,20 @@ def record_predictions(
             if not unchanged:
                 raise ValueError(f"Prediction for game {row['game_id']} already exists and differs")
             reused += 1
+            if now < parse_utc(row["game_time_utc"]):
+                score_status = _record_score_projection(
+                    connection, row, now.isoformat().replace("+00:00", "Z")
+                )
+                score_recorded += int(score_status == "recorded")
+                score_reused += int(score_status == "reused")
+            elif all(row.get(column) not in (None, "") for column in SCORE_COLUMNS):
+                score_skipped_after_start += 1
             continue
         if now >= parse_utc(row["game_time_utc"]):
             skipped_after_start += 1
+            score_skipped_after_start += int(
+                all(row.get(column) not in (None, "") for column in SCORE_COLUMNS)
+            )
             continue
 
         normalized: dict[str, Any] = dict(row)
@@ -149,11 +226,16 @@ def record_predictions(
         )
         previous_hash = record_hash
         recorded += 1
+        score_status = _record_score_projection(connection, row, recorded_at)
+        score_recorded += int(score_status == "recorded")
     connection.commit()
     return {
         "recorded": recorded,
         "reused": reused,
         "skipped_after_start": skipped_after_start,
+        "score_recorded": score_recorded,
+        "score_reused": score_reused,
+        "score_skipped_after_start": score_skipped_after_start,
     }
 
 
@@ -166,6 +248,14 @@ def verify_hash_chain(connection: sqlite3.Connection) -> bool:
         if hashlib.sha256(canonical.encode("utf-8")).hexdigest() != row["record_hash"]:
             return False
         previous_hash = row["record_hash"]
+    return True
+
+
+def verify_score_projection_hashes(connection: sqlite3.Connection) -> bool:
+    for row in connection.execute("SELECT * FROM score_projections ORDER BY game_id"):
+        canonical = canonical_score_projection(dict(row), row["recorded_at_utc"])
+        if hashlib.sha256(canonical.encode("utf-8")).hexdigest() != row["projection_hash"]:
+            return False
     return True
 
 
@@ -241,6 +331,45 @@ def performance_report(connection: sqlite3.Connection) -> dict[str, Any]:
     pending = connection.execute(
         "SELECT COUNT(*) AS count FROM predictions p LEFT JOIN results r USING (game_id) WHERE r.game_id IS NULL"
     ).fetchone()["count"]
+    score_rows = connection.execute(
+        """
+        SELECT s.*, r.away_score, r.home_score
+        FROM score_projections s JOIN results r USING (game_id)
+        ORDER BY s.game_id
+        """
+    ).fetchall()
+    score_metrics = {
+        "score_projection_games": len(score_rows),
+        "score_mae": None,
+        "score_rmse": None,
+        "total_runs_mae": None,
+        "score_projection_hashes_valid": verify_score_projection_hashes(connection),
+    }
+    if score_rows:
+        side_errors = [
+            error
+            for row in score_rows
+            for error in (
+                float(row["away_expected_runs"]) - int(row["away_score"]),
+                float(row["home_expected_runs"]) - int(row["home_score"]),
+            )
+        ]
+        total_errors = [
+            float(row["expected_total_runs"])
+            - (int(row["away_score"]) + int(row["home_score"]))
+            for row in score_rows
+        ]
+        score_metrics.update(
+            {
+                "score_mae": round(sum(abs(error) for error in side_errors) / len(side_errors), 4),
+                "score_rmse": round(
+                    math.sqrt(sum(error**2 for error in side_errors) / len(side_errors)), 4
+                ),
+                "total_runs_mae": round(
+                    sum(abs(error) for error in total_errors) / len(total_errors), 4
+                ),
+            }
+        )
     if not rows:
         return {
             "settled_games": 0,
@@ -249,6 +378,7 @@ def performance_report(connection: sqlite3.Connection) -> dict[str, Any]:
             "log_loss": None,
             "brier_score": None,
             "hash_chain_valid": verify_hash_chain(connection),
+            **score_metrics,
         }
     correct = 0
     losses = []
@@ -267,6 +397,7 @@ def performance_report(connection: sqlite3.Connection) -> dict[str, Any]:
         "log_loss": round(sum(losses) / len(losses), 4),
         "brier_score": round(sum(briers) / len(briers), 4),
         "hash_chain_valid": verify_hash_chain(connection),
+        **score_metrics,
     }
 
 

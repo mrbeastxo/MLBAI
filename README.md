@@ -349,6 +349,15 @@ python -m ml.expected_runs \
   --test-season 2025
 ```
 
+### Milestone 28: score-projection accountability
+
+Pregame expected-run projections are stored in their own immutable, hashed
+SQLite ledger without changing the original probability hash chain. Once MLB
+marks a tracked game final, MLBAI reports per-team score MAE/RMSE and total-runs
+MAE through `/api/v1/performance` and the dashboard. Historical games and
+projections generated after first pitch are never presented as verified model
+performance.
+
 ## Test
 
 ```bash

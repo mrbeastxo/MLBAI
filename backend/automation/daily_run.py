@@ -168,7 +168,14 @@ def run_daily(
         write_json(analysis_path, analyses)
 
         tracking = (
-            {"recorded": 0, "reused": 0, "skipped_after_start": 0}
+            {
+                "recorded": 0,
+                "reused": 0,
+                "skipped_after_start": 0,
+                "score_recorded": 0,
+                "score_reused": 0,
+                "score_skipped_after_start": 0,
+            }
             if dry_run
             else record_predictions(connection, predictions, now)
         )
