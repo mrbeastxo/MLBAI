@@ -27,6 +27,7 @@ reliable and testable.
 - Immutable pregame prediction ledger with final-result scoring
 - Read-only FastAPI service for analysis, model details, and performance
 - Responsive daily dashboard with matchup cards and factor explanations
+- Restart-safe one-command daily prediction and settlement workflow
 - Human-readable game list in the terminal
 - Raw JSON snapshots saved under `data/raw/`
 - Starter automated tests
@@ -232,6 +233,19 @@ information, and prediction-ledger performance. It exposes no write endpoint.
 
 The command prints the games it finds and saves the complete API response to
 `data/raw/schedule_YYYY-MM-DD.json`.
+
+Run the complete daily workflow with one command:
+
+```bash
+python -m backend.automation.daily_run
+```
+
+It settles past tracked games, reconstructs leakage-safe features, generates
+probabilities and explanations, records only pregame predictions, refreshes
+performance, and writes `data/processed/daily_run_YYYY-MM-DD.json`. Re-running
+it is safe: immutable predictions are reused, never overwritten. Use
+`--date YYYY-MM-DD` for a specific date or `--dry-run` to generate outputs
+without adding predictions to the ledger.
 
 ## Test
 
