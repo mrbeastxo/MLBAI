@@ -1,0 +1,143 @@
+{
+  "model": "logistic_regression",
+  "validation_method": "expanding_window_by_complete_season",
+  "feature_count": 8,
+  "features": [
+    "win_percentage_home_minus_away",
+    "runs_per_game_home_minus_away",
+    "runs_allowed_per_game_home_minus_away",
+    "run_differential_per_game_home_minus_away",
+    "last_10_win_percentage_home_minus_away",
+    "last_10_run_differential_home_minus_away",
+    "venue_win_percentage_home_minus_away",
+    "schedule_load_home_minus_away"
+  ],
+  "model_selection_folds": [
+    {
+      "train_seasons": [
+        2022
+      ],
+      "validation_season": 2023,
+      "train_games": 2430,
+      "validation_games": 2430,
+      "model_metrics": {
+        "accuracy": 0.5564,
+        "log_loss": 0.6881,
+        "brier_score": 0.247
+      },
+      "home_rate_baseline_probability": 0.5329,
+      "home_rate_baseline_metrics": {
+        "accuracy": 0.521,
+        "log_loss": 0.6926,
+        "brier_score": 0.2497
+      }
+    },
+    {
+      "train_seasons": [
+        2022,
+        2023
+      ],
+      "validation_season": 2024,
+      "train_games": 4860,
+      "validation_games": 2429,
+      "model_metrics": {
+        "accuracy": 0.5591,
+        "log_loss": 0.6863,
+        "brier_score": 0.2459
+      },
+      "home_rate_baseline_probability": 0.527,
+      "home_rate_baseline_metrics": {
+        "accuracy": 0.5216,
+        "log_loss": 0.6923,
+        "brier_score": 0.2496
+      }
+    }
+  ],
+  "final_untouched_test": {
+    "train_seasons": [
+      2022,
+      2023,
+      2024
+    ],
+    "test_season": 2025,
+    "train_games": 7289,
+    "validation_games": 2428,
+    "model_metrics": {
+      "accuracy": 0.5441,
+      "log_loss": 0.6912,
+      "brier_score": 0.2486
+    },
+    "home_rate_baseline_probability": 0.5252,
+    "home_rate_baseline_metrics": {
+      "accuracy": 0.5432,
+      "log_loss": 0.6901,
+      "brier_score": 0.2485
+    },
+    "calibration": [
+      {
+        "range": "0.0-0.2",
+        "games": 1,
+        "mean_prediction": 0.0591,
+        "observed_home_win_rate": 1.0
+      },
+      {
+        "range": "0.2-0.4",
+        "games": 103,
+        "mean_prediction": 0.3576,
+        "observed_home_win_rate": 0.4563
+      },
+      {
+        "range": "0.4-0.6",
+        "games": 2133,
+        "mean_prediction": 0.5075,
+        "observed_home_win_rate": 0.5415
+      },
+      {
+        "range": "0.6-0.8",
+        "games": 188,
+        "mean_prediction": 0.6364,
+        "observed_home_win_rate": 0.6117
+      },
+      {
+        "range": "0.8-1.0",
+        "games": 3,
+        "mean_prediction": 0.8697,
+        "observed_home_win_rate": 0.3333
+      }
+    ]
+  },
+  "final_standardized_coefficients": [
+    {
+      "feature": "runs_allowed_per_game_home_minus_away",
+      "coefficient": -0.1532
+    },
+    {
+      "feature": "venue_win_percentage_home_minus_away",
+      "coefficient": -0.1449
+    },
+    {
+      "feature": "win_percentage_home_minus_away",
+      "coefficient": 0.1265
+    },
+    {
+      "feature": "run_differential_per_game_home_minus_away",
+      "coefficient": 0.113
+    },
+    {
+      "feature": "schedule_load_home_minus_away",
+      "coefficient": 0.0601
+    },
+    {
+      "feature": "runs_per_game_home_minus_away",
+      "coefficient": 0.0422
+    },
+    {
+      "feature": "last_10_run_differential_home_minus_away",
+      "coefficient": -0.0277
+    },
+    {
+      "feature": "last_10_win_percentage_home_minus_away",
+      "coefficient": 0.0126
+    }
+  ]
+}

@@ -16,6 +16,7 @@ reliable and testable.
 - One model-ready daily feature row per scheduled game
 - Leakage-safe historical training rows with final outcome labels
 - Chronologically evaluated logistic-regression baseline
+- Expanding multi-season validation with a fully untouched newest season
 - Human-readable game list in the terminal
 - Raw JSON snapshots saved under `data/raw/`
 - Starter automated tests
@@ -110,6 +111,20 @@ python -m ml.baseline_model \
 The split is chronological by whole date. Logistic regression is compared with
 a constant probability learned from the training period's home-win rate using
 accuracy, log loss, Brier score, and calibration bins.
+
+For stronger evaluation, build separate season files and run:
+
+```bash
+python -m ml.multiseason_validation \
+  --data data/processed/training_games_2022-04-07_2022-10-05.csv \
+         data/processed/training_games_2023-03-30_2023-10-01.csv \
+         data/processed/training_games_2024-03-20_2024-09-30.csv \
+         data/processed/training_games_2025-03-27_2025-09-28.csv \
+  --test-season 2025
+```
+
+Earlier seasons form expanding validation folds. The newest supplied season is
+evaluated once as the untouched final test set.
 
 The command prints the games it finds and saves the complete API response to
 `data/raw/schedule_YYYY-MM-DD.json`.
