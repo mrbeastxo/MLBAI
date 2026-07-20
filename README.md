@@ -18,6 +18,7 @@ reliable and testable.
 - Chronologically evaluated logistic-regression baseline
 - Expanding multi-season validation with a fully untouched newest season
 - Advanced leakage-safe Elo, last-30, Pythagorean, and streak features
+- Resumable historical box-score archive and pregame starter features
 - Human-readable game list in the terminal
 - Raw JSON snapshots saved under `data/raw/`
 - Starter automated tests
@@ -135,6 +136,16 @@ adding this option to the same multi-season command:
 ```
 
 The baseline feature set remains available for a direct comparison.
+
+Build cached historical starting-pitcher features for a completed range:
+
+```bash
+python -m backend.data_pipeline.historical_pitchers \
+  --start-date 2025-04-01 --end-date 2025-04-07
+```
+
+Every box score is cached by MLB game ID. Re-running the command reuses existing
+files, and starter totals are calculated only from starts on earlier dates.
 
 The command prints the games it finds and saves the complete API response to
 `data/raw/schedule_YYYY-MM-DD.json`.
