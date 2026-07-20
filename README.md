@@ -28,6 +28,7 @@ reliable and testable.
 - Read-only FastAPI service for analysis, model details, and performance
 - Responsive daily dashboard with matchup cards and factor explanations
 - Restart-safe one-command daily prediction and settlement workflow
+- Native macOS daily scheduling with local logs and lifecycle controls
 - Human-readable game list in the terminal
 - Raw JSON snapshots saved under `data/raw/`
 - Starter automated tests
@@ -246,6 +247,24 @@ performance, and writes `data/processed/daily_run_YYYY-MM-DD.json`. Re-running
 it is safe: immutable predictions are reused, never overwritten. Use
 `--date YYYY-MM-DD` for a specific date or `--dry-run` to generate outputs
 without adding predictions to the ledger.
+
+Schedule that workflow for 6:00 AM local time every day on macOS:
+
+```bash
+python -m backend.automation.macos_scheduler install
+```
+
+Check or remove the schedule with:
+
+```bash
+python -m backend.automation.macos_scheduler status
+python -m backend.automation.macos_scheduler uninstall
+```
+
+Use `install --hour 7 --minute 30` to choose a different local time. Standard
+output and errors are stored under `data/logs/`. The Mac must be awake with an
+internet connection; if it is asleep at the scheduled time, macOS normally runs
+the missed calendar job after it wakes.
 
 ## Test
 
