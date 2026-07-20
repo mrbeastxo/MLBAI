@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
 
 from backend.data_pipeline.mlb_schedule import PROJECT_ROOT
+from backend.monitoring.system_health import system_health
 from backend.tracking.prediction_tracker import connect_database, performance_report
 
 PROCESSED_DATA_DIR = PROJECT_ROOT / "data" / "processed"
@@ -66,7 +67,7 @@ class PerformanceResponse(BaseModel):
 
 app = FastAPI(
     title="MLBAI API",
-    version="0.18.0",
+    version="0.22.0",
     description="Read-only access to MLBAI game analysis and model tracking.",
 )
 app.add_middleware(
@@ -140,6 +141,11 @@ def model() -> dict[str, Any]:
             "Experimental classroom model. Probabilities are estimates, not guarantees or betting advice."
         ),
     }
+
+
+@app.get("/api/v1/system")
+def system() -> dict[str, Any]:
+    return system_health()
 
 
 # Keep this mount last so the API routes above always take priority.

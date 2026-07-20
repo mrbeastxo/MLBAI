@@ -29,6 +29,7 @@ reliable and testable.
 - Responsive daily dashboard with matchup cards and factor explanations
 - Restart-safe one-command daily prediction and settlement workflow
 - Native macOS daily scheduling with local logs and lifecycle controls
+- Read-only automation health, run history, log, and storage monitoring
 - Human-readable game list in the terminal
 - Raw JSON snapshots saved under `data/raw/`
 - Starter automated tests
@@ -265,6 +266,11 @@ Use `install --hour 7 --minute 30` to choose a different local time. Standard
 output and errors are stored under `data/logs/`. The Mac must be awake with an
 internet connection; if it is asleep at the scheduled time, macOS normally runs
 the missed calendar job after it wakes.
+
+The dashboard system-health section shows the installed schedule, next run,
+latest workflow result, local storage use, and whether the scheduler error log
+contains anything. The same read-only snapshot is available at
+`/api/v1/system`; it cannot start, stop, or modify the scheduler.
 
 ## Test
 

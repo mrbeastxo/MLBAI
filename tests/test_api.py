@@ -91,3 +91,20 @@ def test_performance_and_model(tmp_path, monkeypatch):
     assert performance.json()["hash_chain_valid"] is True
     assert model.status_code == 200
     assert model.json()["selected_model"] == "logistic_regression"
+
+
+def test_system_health_endpoint(monkeypatch):
+    monkeypatch.setattr(
+        main,
+        "system_health",
+        lambda: {
+            "scheduler": {"installed": True, "schedule": "06:00"},
+            "last_run": {"status": "success"},
+            "logs": {"has_errors": False},
+            "storage": {"data_bytes": 100},
+            "project_root": "/project",
+        },
+    )
+    response = TestClient(main.app).get("/api/v1/system")
+    assert response.status_code == 200
+    assert response.json()["scheduler"]["installed"] is True

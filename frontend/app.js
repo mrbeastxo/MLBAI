@@ -99,6 +99,46 @@ async function loadPerformance() {
   }
 }
 
+function formatBytes(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  const units = ["KB", "MB", "GB"];
+  let value = bytes;
+  let unit = "B";
+  for (const candidate of units) {
+    value /= 1024;
+    unit = candidate;
+    if (value < 1024) break;
+  }
+  return `${value.toFixed(value >= 100 ? 0 : 1)} ${unit}`;
+}
+
+async function loadSystemHealth() {
+  try {
+    const data = await fetchJson("/api/v1/system");
+    const scheduler = data.scheduler;
+    document.querySelector("#schedule-time").textContent = scheduler.installed ? `${scheduler.schedule} daily` : "Not installed";
+    document.querySelector("#next-run").textContent = scheduler.next_run_local
+      ? `Next: ${new Date(scheduler.next_run_local).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}`
+      : "No scheduled run";
+    const lastRun = data.last_run;
+    document.querySelector("#last-run-status").textContent = lastRun ? label(lastRun.status) : "Waiting";
+    document.querySelector("#last-run-detail").textContent = lastRun
+      ? `${lastRun.date} · ${lastRun.predictions_generated ?? 0} predictions`
+      : "Runs after the next schedule";
+    document.querySelector("#storage-used").textContent = formatBytes(data.storage.data_bytes);
+    document.querySelector("#log-health").textContent = data.logs.has_errors ? "Needs review" : "Clear";
+    document.querySelector("#log-detail").textContent = data.logs.has_errors
+      ? `${formatBytes(data.logs.error_bytes)} in error log`
+      : "No scheduler errors recorded";
+    const pill = document.querySelector("#system-pill");
+    const healthy = scheduler.installed && !data.logs.has_errors && (!lastRun || lastRun.status === "success");
+    pill.textContent = healthy ? "Automation healthy" : "Check automation";
+    pill.classList.toggle("healthy", healthy);
+  } catch {
+    document.querySelector("#system-pill").textContent = "Health unavailable";
+  }
+}
+
 async function loadGames(gameDate) {
   renderLoading();
   try {
@@ -129,4 +169,5 @@ document.querySelector("#close-dialog").addEventListener("click", () => dialog.c
 dialog.addEventListener("click", event => { if (event.target === dialog) dialog.close(); });
 
 loadPerformance();
+loadSystemHealth();
 loadGames(dateInput.value);

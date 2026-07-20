@@ -38,6 +38,22 @@
         <article><span>Ledger integrity</span><strong id="ledger-status">Checking</strong></article>
       </section>
 
+      <section class="operations" aria-label="Automation health">
+        <div class="operation-heading">
+          <div>
+            <p class="eyebrow">System health</p>
+            <h2>Runs quietly. Reports clearly.</h2>
+          </div>
+          <span id="system-pill" class="system-pill">Checking automation</span>
+        </div>
+        <div class="operation-grid">
+          <article><span>Daily schedule</span><strong id="schedule-time">—</strong><small id="next-run">Checking next run</small></article>
+          <article><span>Last workflow</span><strong id="last-run-status">—</strong><small id="last-run-detail">No run report yet</small></article>
+          <article><span>Local storage</span><strong id="storage-used">—</strong><small>MLB data and model files</small></article>
+          <article><span>Error log</span><strong id="log-health">—</strong><small id="log-detail">Checking local logs</small></article>
+        </div>
+      </section>
+
       <section class="board">
         <div class="section-heading">
           <div>
@@ -57,7 +73,7 @@
     </dialog>
 
     <footer>
-      <span>MLBAI v0.19</span>
+      <span>MLBAI v0.22</span>
       <span>Educational model · Not betting advice</span>
     </footer>
     <script src="/app.js" defer></script>
