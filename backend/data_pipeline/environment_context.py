@@ -226,7 +226,7 @@ def attach_environment_context(
                         "weather_exposure": context.get("weather_exposure")
                         or weather_exposure(context.get("roof_type")),
                         "probability_impact": "context_only",
-                        "note": "Weather and venue are not used in production probabilities until historical validation passes.",
+                        "note": "Weather was tested on 9,719 historical games but worsened holdout win-probability quality, so it remains context-only.",
                     }
                     if context
                     else None

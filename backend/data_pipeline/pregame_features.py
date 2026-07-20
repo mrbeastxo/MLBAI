@@ -21,6 +21,11 @@ from backend.data_pipeline.mlb_schedule import PROJECT_ROOT, parse_date
 PROCESSED_DATA_DIR = PROJECT_ROOT / "data" / "processed"
 PREGAME_FIELDS = [
     field for field in TRAINING_FIELDS if field not in {"away_score", "home_score", "home_win"}
+] + [
+    "starter_era_home_minus_away",
+    "starter_whip_home_minus_away",
+    "starter_k9_home_minus_away",
+    "starter_bb9_home_minus_away",
 ]
 
 

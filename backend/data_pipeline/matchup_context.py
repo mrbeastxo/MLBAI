@@ -81,6 +81,34 @@ def bullpen_summary(row: dict[str, Any] | None) -> dict[str, Any]:
     }
 
 
+def add_validated_starter_features(
+    features: list[dict[str, Any]], pitcher_rows: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """Add live equivalents of the historically validated starter features."""
+    pitchers = {
+        (str(row.get("game_id")), str(row.get("side"))): row for row in pitcher_rows
+    }
+
+    def difference(home: dict[str, Any] | None, away: dict[str, Any] | None, field: str):
+        try:
+            return round(float(home[field]) - float(away[field]), 4)  # type: ignore[index]
+        except (KeyError, TypeError, ValueError):
+            return ""
+
+    output = []
+    for feature in features:
+        game_id = str(feature["game_id"])
+        away = pitchers.get((game_id, "away"))
+        home = pitchers.get((game_id, "home"))
+        row = dict(feature)
+        row["starter_era_home_minus_away"] = difference(home, away, "season_era")
+        row["starter_whip_home_minus_away"] = difference(home, away, "season_whip")
+        row["starter_k9_home_minus_away"] = difference(home, away, "strikeouts_per_9")
+        row["starter_bb9_home_minus_away"] = difference(home, away, "walks_per_9")
+        output.append(row)
+    return output
+
+
 def attach_matchup_context(
     analyses: list[dict[str, Any]],
     pitcher_rows: list[dict[str, Any]],
@@ -105,13 +133,13 @@ def attach_matchup_context(
             {
                 **game,
                 "matchup_context": {
-                    "probability_impact": "context_only",
+                    "probability_impact": "validated_starters",
                     "away_starter": away_starter,
                     "home_starter": home_starter,
                     "away_bullpen": away_bullpen,
                     "home_bullpen": home_bullpen,
                     "collection_errors": errors or [],
-                    "note": "Displayed for analysis; not used in win probability until historical validation passes.",
+                    "note": "Validated starter ERA, WHIP, K/9, and BB/9 affect win probability. Bullpen workload remains context-only.",
                 },
             }
         )

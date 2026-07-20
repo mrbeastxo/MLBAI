@@ -3,7 +3,10 @@ from datetime import date
 import requests
 
 from backend.data_pipeline import matchup_context
-from backend.data_pipeline.matchup_context import attach_matchup_context
+from backend.data_pipeline.matchup_context import (
+    add_validated_starter_features,
+    attach_matchup_context,
+)
 
 
 def test_context_is_attached_without_changing_probability() -> None:
@@ -22,9 +25,23 @@ def test_context_is_attached_without_changing_probability() -> None:
     enriched, coverage = attach_matchup_context(analyses, pitchers, bullpens)
     assert enriched[0]["home_win_probability"] == 0.6
     assert enriched[0]["matchup_context"]["home_starter"]["name"] == "Starter"
-    assert enriched[0]["matchup_context"]["probability_impact"] == "context_only"
+    assert enriched[0]["matchup_context"]["probability_impact"] == "validated_starters"
     assert coverage["starter_coverage"] == 0.5
     assert coverage["bullpen_coverage"] == 0.5
+
+
+def test_validated_starter_features_use_home_minus_away_differences() -> None:
+    rows = add_validated_starter_features(
+        [{"game_id": "1"}],
+        [
+            {"game_id": "1", "side": "away", "season_era": "4.00", "season_whip": "1.30", "strikeouts_per_9": "8.0", "walks_per_9": "3.0"},
+            {"game_id": "1", "side": "home", "season_era": "3.00", "season_whip": "1.10", "strikeouts_per_9": "9.0", "walks_per_9": "2.0"},
+        ],
+    )
+    assert rows[0]["starter_era_home_minus_away"] == -1.0
+    assert rows[0]["starter_whip_home_minus_away"] == -0.2
+    assert rows[0]["starter_k9_home_minus_away"] == 1.0
+    assert rows[0]["starter_bb9_home_minus_away"] == -1.0
 
 
 def test_missing_context_is_explicit() -> None:

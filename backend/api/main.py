@@ -19,7 +19,7 @@ from backend.tracking.prediction_tracker import connect_database, performance_re
 PROCESSED_DATA_DIR = PROJECT_ROOT / "data" / "processed"
 MODEL_REPORT_PATH = PROJECT_ROOT / "docs" / "model_comparison_report.json"
 CALIBRATION_REPORT_PATH = PROJECT_ROOT / "docs" / "calibration_audit_report.json"
-CONTEXT_DEPLOYMENT_REPORT_PATH = PROJECT_ROOT / "docs" / "pitching_probability_candidate_report.json"
+CONTEXT_DEPLOYMENT_REPORT_PATH = PROJECT_ROOT / "docs" / "context_model_upgrade_report.json"
 EXPECTED_RUNS_REPORT_PATH = PROJECT_ROOT / "docs" / "expected_runs_validation_report.json"
 OUTCOME_AUDIT_REPORT_PATH = PROJECT_ROOT / "docs" / "outcome_uncertainty_audit_report.json"
 LEDGER_PATH = PROJECT_ROOT / "data" / "prediction_ledger.sqlite3"
@@ -92,7 +92,7 @@ class ResultsResponse(BaseModel):
 
 app = FastAPI(
     title="MLBAI API",
-    version="0.31.0",
+    version="0.36.0",
     description="Read-only access to MLBAI game analysis and model tracking.",
 )
 app.add_middleware(

@@ -30,6 +30,10 @@ FEATURE_LABELS = {
     "pythagorean_expectation_home_minus_away": "Pythagorean expectation",
     "streak_home_minus_away": "current streak",
     "elo_rating_home_minus_away": "Elo team strength",
+    "starter_era_home_minus_away": "starting-pitcher ERA",
+    "starter_whip_home_minus_away": "starting-pitcher WHIP",
+    "starter_k9_home_minus_away": "starting-pitcher strikeout rate",
+    "starter_bb9_home_minus_away": "starting-pitcher walk rate",
 }
 
 

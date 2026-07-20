@@ -391,6 +391,24 @@ Lineup information is analysis context only. It does not change the production
 win probability until equivalent historical lineup data is backfilled and its
 effect is proven through chronological out-of-sample testing.
 
+### Milestones 32–36: validated context model
+
+MLBAI backfilled 9,719 regular-season games from 2022–2025 and compared the
+same regularized model with team-only, starter, weather, and combined features
+using expanding-season validation. Starting-pitcher ERA, WHIP, K/9, and BB/9
+improved newest-season log loss, Brier score, and accuracy and won the log-loss
+comparison in two of three validation seasons, so those four metrics now affect
+daily win probabilities when probable starters are available.
+
+Weather achieved 100% historical coverage but worsened holdout probability
+quality, so it remains visible analysis context rather than being forced into
+the win model. Bullpen workload, lineups, and injuries also remain context-only
+until equivalent historical pregame coverage passes the same leakage-safe
+gates. Platt calibration was rejected because it worsened the 2025 audit. The
+complete machine-readable decision is in
+`docs/context_model_upgrade_report.json`; 2026 tracked predictions are the next
+independent audit.
+
 ## Test
 
 ```bash

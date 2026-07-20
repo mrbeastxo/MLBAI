@@ -1,0 +1,139 @@
+{
+  "milestones": [
+    32,
+    33,
+    34,
+    35,
+    36
+  ],
+  "method": "expanding-window validation by complete season",
+  "seasons": [
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "games": 9719,
+  "folds": [
+    {
+      "test_season": 2023,
+      "games": 2430,
+      "models": {
+        "team_only": {
+          "accuracy": 0.5564,
+          "log_loss": 0.6822,
+          "brier_score": 0.2446
+        },
+        "starter": {
+          "accuracy": 0.5584,
+          "log_loss": 0.6816,
+          "brier_score": 0.2443
+        },
+        "weather": {
+          "accuracy": 0.5547,
+          "log_loss": 0.6823,
+          "brier_score": 0.2447
+        },
+        "starter_weather": {
+          "accuracy": 0.5584,
+          "log_loss": 0.6817,
+          "brier_score": 0.2444
+        }
+      }
+    },
+    {
+      "test_season": 2024,
+      "games": 2429,
+      "models": {
+        "team_only": {
+          "accuracy": 0.5583,
+          "log_loss": 0.6837,
+          "brier_score": 0.2453
+        },
+        "starter": {
+          "accuracy": 0.5661,
+          "log_loss": 0.6839,
+          "brier_score": 0.2454
+        },
+        "weather": {
+          "accuracy": 0.5533,
+          "log_loss": 0.6841,
+          "brier_score": 0.2455
+        },
+        "starter_weather": {
+          "accuracy": 0.5591,
+          "log_loss": 0.6844,
+          "brier_score": 0.2456
+        }
+      }
+    },
+    {
+      "test_season": 2025,
+      "games": 2430,
+      "models": {
+        "team_only": {
+          "accuracy": 0.5432,
+          "log_loss": 0.6881,
+          "brier_score": 0.2475
+        },
+        "starter": {
+          "accuracy": 0.5486,
+          "log_loss": 0.6878,
+          "brier_score": 0.2473
+        },
+        "weather": {
+          "accuracy": 0.5383,
+          "log_loss": 0.6892,
+          "brier_score": 0.248
+        },
+        "starter_weather": {
+          "accuracy": 0.5379,
+          "log_loss": 0.6889,
+          "brier_score": 0.2478
+        }
+      }
+    }
+  ],
+  "starter_deployment": {
+    "decision": "deploy",
+    "gates": {
+      "newest_season_log_loss_improves": true,
+      "newest_season_brier_improves": true,
+      "newest_season_accuracy_not_worse": true,
+      "majority_of_seasons_improve_log_loss": true
+    },
+    "features": [
+      "starter_era_home_minus_away",
+      "starter_whip_home_minus_away",
+      "starter_k9_home_minus_away",
+      "starter_bb9_home_minus_away"
+    ]
+  },
+  "weather_deployment": {
+    "decision": "reject",
+    "gates": {
+      "newest_season_log_loss_improves": false,
+      "newest_season_brier_improves": false,
+      "combined_beats_validated_starter": false
+    },
+    "features": [
+      "temperature_f",
+      "wind_speed_mph",
+      "wind_out_indicator",
+      "wind_in_indicator",
+      "weather_precipitation_indicator",
+      "roof_closed_indicator",
+      "environment_history_missing"
+    ],
+    "policy": "Weather remains display-only when validation rejects it."
+  },
+  "lineup_injury_deployment": {
+    "decision": "context_only",
+    "reason": "Official historical pregame lineup and injury snapshots are not yet complete enough for leakage-safe validation."
+  },
+  "calibration": {
+    "decision": "reject",
+    "reason": "Development-only Platt scaling worsened 2025 log loss, Brier score, and accuracy."
+  },
+  "next_independent_audit_season": 2026
+}

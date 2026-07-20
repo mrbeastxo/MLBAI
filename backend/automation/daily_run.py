@@ -15,6 +15,7 @@ import requests
 from backend.data_pipeline.historical_training import fetch_season_games
 from backend.data_pipeline.mlb_schedule import PROJECT_ROOT, fetch_schedule, parse_date
 from backend.data_pipeline.matchup_context import (
+    add_validated_starter_features,
     attach_matchup_context,
     collect_context_snapshot,
 )
@@ -140,11 +141,20 @@ def run_daily(
         season_payload = season_fetcher(run_date.year, run_date)
         features = build_pregame_rows(season_payload, run_date)
         feature_path = output_dir / f"pregame_features_{run_date.isoformat()}.csv"
-        write_csv(feature_path, PREGAME_FIELDS, features)
 
         predictions: list[dict[str, Any]] = []
         analyses: list[dict[str, Any]] = []
+        pitcher_rows: list[dict[str, Any]] = []
+        bullpen_rows: list[dict[str, Any]] = []
+        context_errors: list[str] = []
+        environment_rows: list[dict[str, Any]] = []
+        environment_errors: list[str] = []
         if features:
+            pitcher_rows, bullpen_rows, context_errors = context_fetcher(
+                run_date.year, run_date
+            )
+            features = add_validated_starter_features(features, pitcher_rows)
+            environment_rows, environment_errors = environment_fetcher(run_date)
             if not model_path.is_file():
                 raise FileNotFoundError(f"Production model not found: {model_path}")
             if not model_report_path.is_file():
@@ -160,6 +170,8 @@ def run_daily(
                 analyses = attach_scores(analyses, score_predictions)
                 analyses = attach_uncertainty(analyses)
 
+        write_csv(feature_path, PREGAME_FIELDS, features)
+
         context_coverage: dict[str, Any] = {
             "possible_team_sides": len(analyses) * 2,
             "announced_starters": 0,
@@ -169,9 +181,6 @@ def run_daily(
             "errors": [],
         }
         if analyses:
-            pitcher_rows, bullpen_rows, context_errors = context_fetcher(
-                run_date.year, run_date
-            )
             analyses, context_coverage = attach_matchup_context(
                 analyses, pitcher_rows, bullpen_rows, context_errors
             )
@@ -183,7 +192,6 @@ def run_daily(
             "errors": [],
         }
         if analyses:
-            environment_rows, environment_errors = environment_fetcher(run_date)
             analyses, environment_coverage = attach_environment_context(
                 analyses, environment_rows, environment_errors
             )
