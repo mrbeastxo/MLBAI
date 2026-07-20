@@ -26,6 +26,7 @@ reliable and testable.
 - Exact logistic explanations and held-out certainty-band evidence
 - Immutable pregame prediction ledger with final-result scoring
 - Read-only FastAPI service for analysis, model details, and performance
+- Responsive daily dashboard with matchup cards and factor explanations
 - Human-readable game list in the terminal
 - Raw JSON snapshots saved under `data/raw/`
 - Starter automated tests
@@ -224,7 +225,8 @@ Start the local API with:
 python -m uvicorn backend.api.main:app --reload
 ```
 
-Then open `http://127.0.0.1:8000/docs` for the interactive API page. The API
+Then open `http://127.0.0.1:8000` for the MLBAI dashboard, or
+`http://127.0.0.1:8000/docs` for the interactive API page. The API
 provides health, dated game analysis, individual game detail, selected-model
 information, and prediction-ledger performance. It exposes no write endpoint.
 

@@ -58,6 +58,13 @@ def test_health():
     assert response.json()["status"] == "ok"
 
 
+def test_dashboard_is_served():
+    response = TestClient(main.app).get("/")
+    assert response.status_code == 200
+    assert "Every matchup" in response.text
+    assert "MLBAI" in response.text
+
+
 def test_games_and_game_detail(tmp_path, monkeypatch):
     configure_test_data(tmp_path, monkeypatch)
     client = TestClient(main.app)

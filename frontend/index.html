@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="MLBAI daily baseball prediction dashboard" />
+    <title>MLBAI — Daily Game Intelligence</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="MLBAI dashboard">
+        <span class="brand-mark">M</span>
+        <span>MLBAI</span>
+      </a>
+      <div class="status"><span class="status-dot"></span> Model online</div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Daily baseball intelligence</p>
+          <h1>Every matchup.<br /><span>One clear read.</span></h1>
+          <p class="hero-copy">
+            Experimental win probabilities with transparent evidence—not promises.
+          </p>
+        </div>
+        <div class="date-control">
+          <label for="game-date">Game date</label>
+          <input id="game-date" type="date" />
+        </div>
+      </section>
+
+      <section class="metrics" aria-label="Model overview">
+        <article><span>Games analyzed</span><strong id="game-count">—</strong></article>
+        <article><span>Tracked predictions</span><strong id="tracked-count">—</strong></article>
+        <article><span>Settled accuracy</span><strong id="accuracy">Pending</strong></article>
+        <article><span>Ledger integrity</span><strong id="ledger-status">Checking</strong></article>
+      </section>
+
+      <section class="board">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Model board</p>
+            <h2>Today’s matchups</h2>
+          </div>
+          <p id="updated-label" class="muted"></p>
+        </div>
+        <div id="notice" class="notice hidden" role="status"></div>
+        <div id="games" class="game-grid" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <dialog id="game-dialog">
+      <button id="close-dialog" class="close-button" aria-label="Close game analysis">×</button>
+      <div id="dialog-content"></div>
+    </dialog>
+
+    <footer>
+      <span>MLBAI v0.19</span>
+      <span>Educational model · Not betting advice</span>
+    </footer>
+    <script src="/app.js" defer></script>
+  </body>
+</html>

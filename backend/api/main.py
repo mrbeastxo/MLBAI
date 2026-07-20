@@ -10,6 +10,7 @@ from typing import Any
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from fastapi.staticfiles import StaticFiles
 
 from backend.data_pipeline.mlb_schedule import PROJECT_ROOT
 from backend.tracking.prediction_tracker import connect_database, performance_report
@@ -17,6 +18,7 @@ from backend.tracking.prediction_tracker import connect_database, performance_re
 PROCESSED_DATA_DIR = PROJECT_ROOT / "data" / "processed"
 MODEL_REPORT_PATH = PROJECT_ROOT / "docs" / "model_comparison_report.json"
 LEDGER_PATH = PROJECT_ROOT / "data" / "prediction_ledger.sqlite3"
+FRONTEND_DIR = PROJECT_ROOT / "frontend"
 
 
 class Factor(BaseModel):
@@ -138,3 +140,7 @@ def model() -> dict[str, Any]:
             "Experimental classroom model. Probabilities are estimates, not guarantees or betting advice."
         ),
     }
+
+
+# Keep this mount last so the API routes above always take priority.
+app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="dashboard")
