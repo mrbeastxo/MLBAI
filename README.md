@@ -17,6 +17,7 @@ reliable and testable.
 - Leakage-safe historical training rows with final outcome labels
 - Chronologically evaluated logistic-regression baseline
 - Expanding multi-season validation with a fully untouched newest season
+- Advanced leakage-safe Elo, last-30, Pythagorean, and streak features
 - Human-readable game list in the terminal
 - Raw JSON snapshots saved under `data/raw/`
 - Starter automated tests
@@ -125,6 +126,15 @@ python -m ml.multiseason_validation \
 
 Earlier seasons form expanding validation folds. The newest supplied season is
 evaluated once as the untouched final test set.
+
+After regenerating the season files, evaluate the advanced feature set by
+adding this option to the same multi-season command:
+
+```bash
+--feature-set advanced
+```
+
+The baseline feature set remains available for a direct comparison.
 
 The command prints the games it finds and saves the complete API response to
 `data/raw/schedule_YYYY-MM-DD.json`.

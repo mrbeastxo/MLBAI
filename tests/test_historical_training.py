@@ -31,6 +31,9 @@ def test_training_rows_use_only_prior_dates() -> None:
     assert rows[1]["home_games_before"] == 1
     assert rows[1]["home_win_percentage_before"] == 1.0
     assert rows[1]["away_win_percentage_before"] == 0.0
+    assert rows[0]["elo_rating_home_minus_away"] == 0.0
+    assert rows[1]["elo_rating_home_minus_away"] > 0
+    assert rows[1]["home_pythagorean_expectation"] == 0.95
 
 
 def test_same_date_games_do_not_leak_between_rows() -> None:

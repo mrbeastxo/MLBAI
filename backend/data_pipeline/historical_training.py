@@ -28,6 +28,12 @@ ROLLING_FIELDS = [
     "last_10_runs_per_game",
     "last_10_runs_allowed_per_game",
     "last_10_run_differential_per_game",
+    "last_30_games",
+    "last_30_win_percentage",
+    "last_30_run_differential_per_game",
+    "pythagorean_expectation",
+    "current_streak",
+    "elo_rating",
     "venue_games_before",
     "venue_win_percentage_before",
     "days_since_last_game",
@@ -40,6 +46,12 @@ DIFFERENCE_FIELDS = [
     "run_differential_per_game_home_minus_away",
     "last_10_win_percentage_home_minus_away",
     "last_10_run_differential_home_minus_away",
+    "last_30_win_percentage_home_minus_away",
+    "last_30_run_differential_home_minus_away",
+    "pythagorean_expectation_home_minus_away",
+    "streak_home_minus_away",
+    "elo_rating_home_minus_away",
+    "elo_home_win_probability",
     "venue_win_percentage_home_minus_away",
     "schedule_load_home_minus_away",
 ]
@@ -118,11 +130,12 @@ def _average(values: list[float]) -> float:
 
 
 def summarize_history(
-    history: list[dict[str, Any]], game_date: date, venue: str
+    history: list[dict[str, Any]], game_date: date, venue: str, elo_rating: float
 ) -> dict[str, Any]:
     """Summarize only games completed before ``game_date``."""
     prior = [game for game in history if game["date"] < game_date]
     last_10 = prior[-10:]
+    last_30 = prior[-30:]
     venue_games = [game for game in prior if game["venue"] == venue]
     recent_cutoff = game_date - timedelta(days=3)
     recent_games = [game for game in prior if game["date"] >= recent_cutoff]
@@ -137,6 +150,25 @@ def summarize_history(
 
     win_pct, runs_for, runs_against, run_diff = metrics(prior)
     last_win_pct, last_runs, last_allowed, last_diff = metrics(last_10)
+    last_30_win_pct, _, _, last_30_diff = metrics(last_30)
+    total_runs_for = sum(game["runs_for"] for game in prior)
+    total_runs_against = sum(game["runs_against"] for game in prior)
+    if total_runs_for == 0 and total_runs_against == 0:
+        pythagorean = 0.5
+    else:
+        exponent = 1.83
+        pythagorean = round(
+            total_runs_for**exponent
+            / (total_runs_for**exponent + total_runs_against**exponent),
+            4,
+        )
+    streak = 0
+    for previous_game in reversed(prior):
+        result = 1 if previous_game["won"] else -1
+        if streak == 0 or (streak > 0) == (result > 0):
+            streak += result
+        else:
+            break
     last_date = prior[-1]["date"] if prior else None
     return {
         "games_before": len(prior),
@@ -150,6 +182,12 @@ def summarize_history(
         "last_10_runs_per_game": last_runs,
         "last_10_runs_allowed_per_game": last_allowed,
         "last_10_run_differential_per_game": last_diff,
+        "last_30_games": len(last_30),
+        "last_30_win_percentage": last_30_win_pct,
+        "last_30_run_differential_per_game": last_30_diff,
+        "pythagorean_expectation": pythagorean,
+        "current_streak": streak,
+        "elo_rating": round(elo_rating, 2),
         "venue_games_before": len(venue_games),
         "venue_win_percentage_before": _average(
             [float(game["won"]) for game in venue_games]
@@ -175,6 +213,7 @@ def build_training_rows(
 ) -> list[dict[str, Any]]:
     """Build rows chronologically, updating history only after each whole date."""
     histories: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    elo_ratings: dict[str, float] = defaultdict(lambda: 1500.0)
     games_by_date: dict[date, list[dict[str, Any]]] = defaultdict(list)
     for game in games:
         games_by_date[date.fromisoformat(game["official_date"])].append(game)
@@ -187,8 +226,18 @@ def build_training_rows(
         # first result from leaking into the second game's pregame features.
         if start_date <= game_date <= end_date:
             for game in day_games:
-                away = summarize_history(histories[game["away_team_id"]], game_date, "away")
-                home = summarize_history(histories[game["home_team_id"]], game_date, "home")
+                away = summarize_history(
+                    histories[game["away_team_id"]],
+                    game_date,
+                    "away",
+                    elo_ratings[game["away_team_id"]],
+                )
+                home = summarize_history(
+                    histories[game["home_team_id"]],
+                    game_date,
+                    "home",
+                    elo_ratings[game["home_team_id"]],
+                )
                 row = {key: game[key] for key in TRAINING_FIELDS if key in game}
                 _copy_prefixed(row, "away", away)
                 _copy_prefixed(row, "home", home)
@@ -211,6 +260,37 @@ def build_training_rows(
                     home["last_10_run_differential_per_game"],
                     away["last_10_run_differential_per_game"],
                 )
+                row["last_30_win_percentage_home_minus_away"] = _difference(
+                    home["last_30_win_percentage"], away["last_30_win_percentage"]
+                )
+                row["last_30_run_differential_home_minus_away"] = _difference(
+                    home["last_30_run_differential_per_game"],
+                    away["last_30_run_differential_per_game"],
+                )
+                row["pythagorean_expectation_home_minus_away"] = _difference(
+                    home["pythagorean_expectation"], away["pythagorean_expectation"]
+                )
+                row["streak_home_minus_away"] = _difference(
+                    home["current_streak"], away["current_streak"]
+                )
+                row["elo_rating_home_minus_away"] = _difference(
+                    home["elo_rating"], away["elo_rating"]
+                )
+                row["elo_home_win_probability"] = round(
+                    1
+                    / (
+                        1
+                        + 10
+                        ** (
+                            (
+                                away["elo_rating"]
+                                - (home["elo_rating"] + 35.0)
+                            )
+                            / 400.0
+                        )
+                    ),
+                    4,
+                )
                 row["venue_win_percentage_home_minus_away"] = _difference(
                     home["venue_win_percentage_before"], away["venue_win_percentage_before"]
                 )
@@ -221,6 +301,14 @@ def build_training_rows(
 
         # Outcomes become available only after every row for this date is built.
         for game in day_games:
+            away_id = game["away_team_id"]
+            home_id = game["home_team_id"]
+            expected_home = 1 / (
+                1 + 10 ** ((elo_ratings[away_id] - (elo_ratings[home_id] + 35.0)) / 400.0)
+            )
+            adjustment = 20.0 * (game["home_win"] - expected_home)
+            elo_ratings[home_id] += adjustment
+            elo_ratings[away_id] -= adjustment
             histories[game["away_team_id"]].append(
                 {
                     "date": game_date,

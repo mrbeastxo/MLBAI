@@ -12,6 +12,7 @@ import numpy as np
 
 from backend.data_pipeline.mlb_schedule import PROJECT_ROOT
 from ml.baseline_model import (
+    ADVANCED_FEATURES,
     FEATURES,
     build_pipeline,
     calibration_bins,
@@ -57,12 +58,14 @@ def expanding_season_splits(
 
 
 def evaluate_fold(
-    train_rows: list[dict[str, str]], validation_rows: list[dict[str, str]]
+    train_rows: list[dict[str, str]],
+    validation_rows: list[dict[str, str]],
+    features: list[str] = FEATURES,
 ) -> tuple[Any, dict[str, Any], np.ndarray, np.ndarray]:
     """Fit one chronological fold and compare against its home-rate baseline."""
     pipeline = build_pipeline()
-    x_train, y_train = feature_matrix(train_rows), labels(train_rows)
-    x_validation, y_validation = feature_matrix(validation_rows), labels(validation_rows)
+    x_train, y_train = feature_matrix(train_rows, features), labels(train_rows)
+    x_validation, y_validation = feature_matrix(validation_rows, features), labels(validation_rows)
     pipeline.fit(x_train, y_train)
     probabilities = pipeline.predict_proba(x_validation)[:, 1]
     baseline_probability = float(y_train.mean())
@@ -80,7 +83,10 @@ def evaluate_fold(
 
 
 def run_multiseason_validation(
-    grouped: dict[int, list[dict[str, str]]], test_season: int
+    grouped: dict[int, list[dict[str, str]]],
+    test_season: int,
+    features: list[str] = FEATURES,
+    feature_set_name: str = "baseline",
 ) -> tuple[Any, dict[str, Any]]:
     """Evaluate expanding folds and return the untouched-season model/report."""
     split_plan = expanding_season_splits(grouped, test_season)
@@ -94,7 +100,7 @@ def run_multiseason_validation(
         train_rows = [row for season in train_seasons for row in grouped[season]]
         validation_rows = grouped[validation_season]
         pipeline, metrics, y_validation, probabilities = evaluate_fold(
-            train_rows, validation_rows
+            train_rows, validation_rows, features
         )
         fold = {
             "train_seasons": train_seasons,
@@ -119,8 +125,9 @@ def run_multiseason_validation(
     report = {
         "model": "logistic_regression",
         "validation_method": "expanding_window_by_complete_season",
-        "feature_count": len(FEATURES),
-        "features": FEATURES,
+        "feature_set": feature_set_name,
+        "feature_count": len(features),
+        "features": features,
         "model_selection_folds": validation_folds,
         "final_untouched_test": {
             "train_seasons": final_train_seasons,
@@ -131,7 +138,7 @@ def run_multiseason_validation(
         "final_standardized_coefficients": sorted(
             (
                 {"feature": feature, "coefficient": round(float(coefficient), 4)}
-                for feature, coefficient in zip(FEATURES, coefficients, strict=True)
+                for feature, coefficient in zip(features, coefficients, strict=True)
             ),
             key=lambda item: abs(item["coefficient"]),
             reverse=True,
@@ -140,12 +147,15 @@ def run_multiseason_validation(
     return final_pipeline, report
 
 
-def save_artifacts(pipeline: Any, report: dict[str, Any]) -> tuple[Path, Path]:
+def save_artifacts(
+    pipeline: Any, report: dict[str, Any], features: list[str], feature_set_name: str
+) -> tuple[Path, Path]:
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
-    model_path = MODEL_DIR / "multiseason_logistic.joblib"
-    report_path = REPORT_DIR / "multiseason_validation_report.json"
-    joblib.dump({"pipeline": pipeline, "features": FEATURES}, model_path)
+    prefix = "advanced" if feature_set_name == "advanced" else "multiseason"
+    model_path = MODEL_DIR / f"{prefix}_logistic.joblib"
+    report_path = REPORT_DIR / f"{prefix}_validation_report.json"
+    joblib.dump({"pipeline": pipeline, "features": features}, model_path)
     report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
     return model_path, report_path
 
@@ -154,14 +164,22 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", required=True, type=Path, nargs="+")
     parser.add_argument("--test-season", required=True, type=int)
+    parser.add_argument(
+        "--feature-set", choices=("baseline", "advanced"), default="baseline"
+    )
     args = parser.parse_args()
 
     try:
         grouped = group_rows_by_season(args.data)
-        pipeline, report = run_multiseason_validation(grouped, args.test_season)
+        features = ADVANCED_FEATURES if args.feature_set == "advanced" else FEATURES
+        pipeline, report = run_multiseason_validation(
+            grouped, args.test_season, features, args.feature_set
+        )
     except ValueError as exc:
         raise SystemExit(f"Could not run multi-season validation: {exc}") from exc
-    model_path, report_path = save_artifacts(pipeline, report)
+    model_path, report_path = save_artifacts(
+        pipeline, report, features, args.feature_set
+    )
 
     for fold in report["model_selection_folds"]:
         model = fold["model_metrics"]

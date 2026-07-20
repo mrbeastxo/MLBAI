@@ -30,6 +30,13 @@ FEATURES = [
     "venue_win_percentage_home_minus_away",
     "schedule_load_home_minus_away",
 ]
+ADVANCED_FEATURES = FEATURES + [
+    "last_30_win_percentage_home_minus_away",
+    "last_30_run_differential_home_minus_away",
+    "pythagorean_expectation_home_minus_away",
+    "streak_home_minus_away",
+    "elo_rating_home_minus_away",
+]
 
 
 def load_training_rows(path: Path) -> list[dict[str, str]]:
@@ -55,11 +62,13 @@ def chronological_split(
     return train_rows, test_rows, test_start_date
 
 
-def feature_matrix(rows: list[dict[str, str]]) -> np.ndarray:
+def feature_matrix(
+    rows: list[dict[str, str]], features: list[str] = FEATURES
+) -> np.ndarray:
     """Convert approved pregame feature columns into a numeric matrix."""
     return np.asarray(
         [
-            [float(row[field]) if row.get(field, "") != "" else np.nan for field in FEATURES]
+            [float(row[field]) if row.get(field, "") != "" else np.nan for field in features]
             for row in rows
         ],
         dtype=float,
