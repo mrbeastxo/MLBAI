@@ -14,6 +14,7 @@ reliable and testable.
 - Probable starters with season performance, rest, and recent workload
 - Three-day bullpen workload derived from official game box scores
 - One model-ready daily feature row per scheduled game
+- Leakage-safe historical training rows with final outcome labels
 - Human-readable game list in the terminal
 - Raw JSON snapshots saved under `data/raw/`
 - Starter automated tests
@@ -82,6 +83,18 @@ python -m backend.data_pipeline.daily_features --date 2026-07-20
 The resulting table uses stable MLB IDs, separate `home_` and `away_` features,
 and explicit home-minus-away differences. It contains inputs only—no invented
 prediction or outcome label.
+
+To build historical training rows for a completed date range:
+
+```bash
+python -m backend.data_pipeline.historical_training \
+  --start-date 2025-07-18 --end-date 2025-07-20
+```
+
+Historical features are reconstructed chronologically from prior results. The
+current game's result is attached only as the `home_win` training label, and
+same-day games are updated together to prevent doubleheader leakage. Current
+team, pitcher, and bullpen snapshots are intentionally not joined to old games.
 
 The command prints the games it finds and saves the complete API response to
 `data/raw/schedule_YYYY-MM-DD.json`.
