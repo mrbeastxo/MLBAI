@@ -23,6 +23,7 @@ reliable and testable.
 - Historical bullpen performance and workload from cached box scores
 - Development-fold model selection with one untouched-season test
 - Refit production model and daily rolling win-probability pipeline
+- Exact logistic explanations and held-out certainty-band evidence
 - Human-readable game list in the terminal
 - Raw JSON snapshots saved under `data/raw/`
 - Starter automated tests
@@ -192,6 +193,16 @@ python -m ml.predict_daily --features data/processed/pregame_features_2026-07-20
 
 Daily probabilities are model estimates, not guaranteed outcomes or betting
 advice. Same-day results are excluded from the rolling feature history.
+
+Explain daily estimates using exact standardized logistic contributions:
+
+```bash
+python -m ml.explain_daily \
+  --features data/processed/pregame_features_2026-07-20.csv
+```
+
+The analysis separates probability strength from held-out evidence, reports
+missing inputs, and retains an experimental-model reliability warning.
 
 The command prints the games it finds and saves the complete API response to
 `data/raw/schedule_YYYY-MM-DD.json`.

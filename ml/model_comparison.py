@@ -101,6 +101,39 @@ def select_by_average_log_loss(
     return min(MODEL_NAMES, key=lambda name: (averages[name], MODEL_NAMES.index(name)))
 
 
+def certainty_band_performance(
+    y_true: np.ndarray, probabilities: np.ndarray
+) -> list[dict[str, Any]]:
+    """Measure winner accuracy at increasing top-team probability bands."""
+    top_probabilities = np.maximum(probabilities, 1.0 - probabilities)
+    predictions = (probabilities >= 0.5).astype(int)
+    bands = [
+        (0.50, 0.55, "close"),
+        (0.55, 0.60, "slight_lean"),
+        (0.60, 0.65, "moderate_lean"),
+        (0.65, 1.01, "strongest_lean"),
+    ]
+    results: list[dict[str, Any]] = []
+    for lower, upper, label in bands:
+        mask = (top_probabilities >= lower) & (top_probabilities < upper)
+        games = int(mask.sum())
+        results.append(
+            {
+                "band": label,
+                "minimum_probability": lower,
+                "maximum_probability": min(1.0, upper),
+                "games": games,
+                "mean_top_probability": round(float(top_probabilities[mask].mean()), 4)
+                if games
+                else None,
+                "observed_accuracy": round(float((predictions[mask] == y_true[mask]).mean()), 4)
+                if games
+                else None,
+            }
+        )
+    return results
+
+
 def compare_models(
     grouped: dict[int, list[dict[str, str]]], test_season: int
 ) -> tuple[Pipeline, dict[str, Any]]:
@@ -176,6 +209,9 @@ def compare_models(
                 y_test, baseline_probabilities
             ),
             "calibration": calibration_bins(y_test, test_probabilities),
+            "certainty_bands": certainty_band_performance(
+                y_test, test_probabilities
+            ),
         },
         "untouched_test_policy": (
             "Only the development-fold winner was evaluated on the test season."

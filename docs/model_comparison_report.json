@@ -159,6 +159,40 @@
         "mean_prediction": 0.6416,
         "observed_home_win_rate": 0.5753
       }
+    ],
+    "certainty_bands": [
+      {
+        "band": "close",
+        "minimum_probability": 0.5,
+        "maximum_probability": 0.55,
+        "games": 1240,
+        "mean_top_probability": 0.5247,
+        "observed_accuracy": 0.5145
+      },
+      {
+        "band": "slight_lean",
+        "minimum_probability": 0.55,
+        "maximum_probability": 0.6,
+        "games": 728,
+        "mean_top_probability": 0.5713,
+        "observed_accuracy": 0.5659
+      },
+      {
+        "band": "moderate_lean",
+        "minimum_probability": 0.6,
+        "maximum_probability": 0.65,
+        "games": 307,
+        "mean_top_probability": 0.6207,
+        "observed_accuracy": 0.557
+      },
+      {
+        "band": "strongest_lean",
+        "minimum_probability": 0.65,
+        "maximum_probability": 1.0,
+        "games": 153,
+        "mean_top_probability": 0.6795,
+        "observed_accuracy": 0.6144
+      }
     ]
   },
   "untouched_test_policy": "Only the development-fold winner was evaluated on the test season."
