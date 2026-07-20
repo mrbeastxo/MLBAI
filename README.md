@@ -11,6 +11,7 @@ reliable and testable.
 - Official MLB Stats API schedule collector
 - Completed-game results collector with model-ready CSV output
 - Thirty-team season snapshots with records, splits, hitting, and pitching
+- Probable starters with season performance, rest, and recent workload
 - Human-readable game list in the terminal
 - Raw JSON snapshots saved under `data/raw/`
 - Starter automated tests
@@ -50,6 +51,15 @@ python -m backend.data_pipeline.team_stats --season 2026 --date 2026-07-20
 
 Snapshots must be handled carefully during model training: a prediction may
 only use statistics that were available before that game's start time.
+
+To collect announced starting pitchers for a game date:
+
+```bash
+python -m backend.data_pipeline.starting_pitchers \
+  --season 2026 --date 2026-07-20
+```
+
+Some teams may be absent when MLB has not announced their probable starter yet.
 
 The command prints the games it finds and saves the complete API response to
 `data/raw/schedule_YYYY-MM-DD.json`.
