@@ -108,3 +108,18 @@ def test_system_health_endpoint(monkeypatch):
     response = TestClient(main.app).get("/api/v1/system")
     assert response.status_code == 200
     assert response.json()["scheduler"]["installed"] is True
+
+
+def test_season_results_support_team_filter_and_pagination(tmp_path, monkeypatch):
+    processed = tmp_path / "processed"
+    processed.mkdir()
+    rows = [
+        {"game_id": "2", "official_date": "2026-07-19", "away_team": "Mets", "home_team": "Cubs"},
+        {"game_id": "1", "official_date": "2026-07-18", "away_team": "Reds", "home_team": "Mets"},
+    ]
+    (processed / "season_results_2026.json").write_text(json.dumps(rows))
+    monkeypatch.setattr(main, "PROCESSED_DATA_DIR", processed)
+    response = TestClient(main.app).get("/api/v1/results?season=2026&team=Mets&limit=1")
+    assert response.status_code == 200
+    assert response.json()["total"] == 2
+    assert response.json()["returned"] == 1

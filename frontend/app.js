@@ -3,6 +3,10 @@ const notice = document.querySelector("#notice");
 const dateInput = document.querySelector("#game-date");
 const dialog = document.querySelector("#game-dialog");
 const dialogContent = document.querySelector("#dialog-content");
+const resultRows = document.querySelector("#result-rows");
+const resultLimit = 25;
+let resultOffset = 0;
+let resultTeam = "";
 
 const percent = (value, digits = 1) => value == null ? "Pending" : `${(value * 100).toFixed(digits)}%`;
 const label = (value) => String(value || "unknown").replaceAll("_", " ");
@@ -160,6 +164,38 @@ async function loadGames(gameDate) {
   }
 }
 
+function resultRow(game) {
+  let comparison = '<span class="result-badge">Not tracked</span>';
+  if (game.mlbai_tracked && !game.mlbai_verified) comparison = '<span class="result-badge">Awaiting settlement</span>';
+  if (game.mlbai_verified) comparison = `<span class="result-badge ${game.mlbai_correct ? "correct" : "wrong"}">${game.mlbai_correct ? "✓ Correct" : "× Incorrect"} · ${escapeHtml(game.mlbai_lean)}</span>`;
+  return `<tr>
+    <td>${escapeHtml(new Date(`${game.official_date}T12:00:00`).toLocaleDateString([], { month: "short", day: "numeric" }))}</td>
+    <td>${escapeHtml(game.away_team)} at ${escapeHtml(game.home_team)}</td>
+    <td class="final-score">${escapeHtml(game.away_score)}–${escapeHtml(game.home_score)}</td>
+    <td>${escapeHtml(game.winner_team)}</td>
+    <td>${comparison}</td>
+  </tr>`;
+}
+
+async function loadResults() {
+  resultRows.innerHTML = '<tr><td colspan="5" class="muted">Loading season results…</td></tr>';
+  const teamQuery = resultTeam ? `&team=${encodeURIComponent(resultTeam)}` : "";
+  try {
+    const data = await fetchJson(`/api/v1/results?season=2026&limit=${resultLimit}&offset=${resultOffset}${teamQuery}`);
+    document.querySelector("#result-total").textContent = data.total;
+    resultRows.innerHTML = data.results.length
+      ? data.results.map(resultRow).join("")
+      : '<tr><td colspan="5" class="muted">No completed games match this filter.</td></tr>';
+    const first = data.total ? resultOffset + 1 : 0;
+    const last = Math.min(resultOffset + data.returned, data.total);
+    document.querySelector("#result-page").textContent = `${first}–${last} of ${data.total}`;
+    document.querySelector("#newer-results").disabled = resultOffset === 0;
+    document.querySelector("#older-results").disabled = resultOffset + data.returned >= data.total;
+  } catch (error) {
+    resultRows.innerHTML = `<tr><td colspan="5" class="muted">${escapeHtml(error.message)}</td></tr>`;
+  }
+}
+
 dateInput.value = new URLSearchParams(window.location.search).get("date") || localToday();
 dateInput.addEventListener("change", () => {
   history.replaceState(null, "", `?date=${dateInput.value}`);
@@ -167,7 +203,30 @@ dateInput.addEventListener("change", () => {
 });
 document.querySelector("#close-dialog").addEventListener("click", () => dialog.close());
 dialog.addEventListener("click", event => { if (event.target === dialog) dialog.close(); });
+document.querySelector("#apply-team-filter").addEventListener("click", () => {
+  resultTeam = document.querySelector("#team-filter").value.trim();
+  resultOffset = 0;
+  loadResults();
+});
+document.querySelector("#clear-team-filter").addEventListener("click", () => {
+  document.querySelector("#team-filter").value = "";
+  resultTeam = "";
+  resultOffset = 0;
+  loadResults();
+});
+document.querySelector("#newer-results").addEventListener("click", () => {
+  resultOffset = Math.max(0, resultOffset - resultLimit);
+  loadResults();
+});
+document.querySelector("#older-results").addEventListener("click", () => {
+  resultOffset += resultLimit;
+  loadResults();
+});
+document.querySelector("#team-filter").addEventListener("keydown", event => {
+  if (event.key === "Enter") document.querySelector("#apply-team-filter").click();
+});
 
 loadPerformance();
 loadSystemHealth();
 loadGames(dateInput.value);
+loadResults();

@@ -30,6 +30,7 @@ reliable and testable.
 - Restart-safe one-command daily prediction and settlement workflow
 - Native macOS daily scheduling with local logs and lifecycle controls
 - Read-only automation health, run history, log, and storage monitoring
+- Complete current-season results archive with verified prediction comparisons
 - Human-readable game list in the terminal
 - Raw JSON snapshots saved under `data/raw/`
 - Starter automated tests
@@ -271,6 +272,17 @@ The dashboard system-health section shows the installed schedule, next run,
 latest workflow result, local storage use, and whether the scheduler error log
 contains anything. The same read-only snapshot is available at
 `/api/v1/system`; it cannot start, stop, or modify the scheduler.
+
+Refresh the current season's completed-game archive manually with:
+
+```bash
+python -m backend.history.season_results --season 2026 --through-date 2026-07-20
+```
+
+The daily workflow refreshes this archive automatically. The Performance Center
+can filter and paginate official results while labeling old games as untracked.
+Only predictions present in the immutable pregame ledger and subsequently
+settled count as verified MLBAI performance.
 
 ## Test
 

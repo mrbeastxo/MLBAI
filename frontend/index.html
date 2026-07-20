@@ -65,6 +65,34 @@
         <div id="notice" class="notice hidden" role="status"></div>
         <div id="games" class="game-grid" aria-live="polite"></div>
       </section>
+
+      <section class="history" aria-label="Season results">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Performance center</p>
+            <h2>2026 season results</h2>
+          </div>
+          <p class="muted"><span id="result-total">—</span> completed games</p>
+        </div>
+        <div class="history-controls">
+          <label for="team-filter">Filter by team</label>
+          <input id="team-filter" type="search" placeholder="e.g. Yankees" autocomplete="off" />
+          <button id="apply-team-filter">Apply</button>
+          <button id="clear-team-filter" class="quiet-button">Clear</button>
+        </div>
+        <p class="history-note">Verified comparisons include only predictions locked before first pitch. Older games are official results, not claimed MLBAI predictions.</p>
+        <div class="results-table-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Matchup</th><th>Final</th><th>Winner</th><th>MLBAI record</th></tr></thead>
+            <tbody id="result-rows"></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <button id="newer-results" class="quiet-button">← Newer</button>
+          <span id="result-page">—</span>
+          <button id="older-results" class="quiet-button">Older →</button>
+        </div>
+      </section>
     </main>
 
     <dialog id="game-dialog">
@@ -73,7 +101,7 @@
     </dialog>
 
     <footer>
-      <span>MLBAI v0.22</span>
+      <span>MLBAI v0.23</span>
       <span>Educational model · Not betting advice</span>
     </footer>
     <script src="/app.js" defer></script>

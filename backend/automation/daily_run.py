@@ -15,6 +15,7 @@ import requests
 from backend.data_pipeline.historical_training import fetch_season_games
 from backend.data_pipeline.mlb_schedule import PROJECT_ROOT, fetch_schedule, parse_date
 from backend.data_pipeline.pregame_features import PREGAME_FIELDS, build_pregame_rows
+from backend.history.season_results import build_season_results, save_season_results
 from backend.tracking.prediction_tracker import (
     DEFAULT_DATABASE,
     REPORT_PATH,
@@ -138,6 +139,10 @@ def run_daily(
             if dry_run
             else record_predictions(connection, predictions, now)
         )
+        season_results = build_season_results(season_payload, connection)
+        season_results_path = save_season_results(
+            season_results, run_date.year, output_dir
+        )
         report = performance_report(connection)
         write_json(output_dir / REPORT_PATH.name, report)
         summary.update(
@@ -145,12 +150,14 @@ def run_daily(
                 "status": "success",
                 "scheduled_games": len(features),
                 "predictions_generated": len(predictions),
+                "completed_season_games": len(season_results),
                 "tracking": tracking,
                 "performance": report,
                 "outputs": {
                     "features": display_path(feature_path),
                     "predictions": display_path(prediction_path),
                     "analysis": display_path(analysis_path),
+                    "season_results": display_path(season_results_path),
                 },
                 "finished_at_utc": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
             }

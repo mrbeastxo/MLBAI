@@ -65,9 +65,17 @@ class PerformanceResponse(BaseModel):
     hash_chain_valid: bool
 
 
+class ResultsResponse(BaseModel):
+    season: int
+    total: int
+    returned: int
+    offset: int
+    results: list[dict[str, Any]]
+
+
 app = FastAPI(
     title="MLBAI API",
-    version="0.22.0",
+    version="0.23.0",
     description="Read-only access to MLBAI game analysis and model tracking.",
 )
 app.add_middleware(
@@ -146,6 +154,43 @@ def model() -> dict[str, Any]:
 @app.get("/api/v1/system")
 def system() -> dict[str, Any]:
     return system_health()
+
+
+@app.get("/api/v1/results", response_model=ResultsResponse)
+def season_results(
+    season: int = Query(default_factory=lambda: date.today().year, ge=1876, le=2200),
+    team: str | None = Query(default=None, min_length=1, max_length=80),
+    start_date: date | None = None,
+    end_date: date | None = None,
+    limit: int = Query(default=50, ge=1, le=250),
+    offset: int = Query(default=0, ge=0),
+) -> ResultsResponse:
+    if start_date and end_date and end_date < start_date:
+        raise HTTPException(status_code=422, detail="end_date cannot be before start_date")
+    payload = load_json(PROCESSED_DATA_DIR / f"season_results_{season}.json")
+    if not isinstance(payload, list):
+        raise HTTPException(status_code=500, detail="Season-results file has an invalid format")
+    rows = payload
+    if team:
+        query = team.casefold()
+        rows = [
+            row
+            for row in rows
+            if query in str(row.get("away_team", "")).casefold()
+            or query in str(row.get("home_team", "")).casefold()
+        ]
+    if start_date:
+        rows = [row for row in rows if row.get("official_date", "") >= start_date.isoformat()]
+    if end_date:
+        rows = [row for row in rows if row.get("official_date", "") <= end_date.isoformat()]
+    page = rows[offset : offset + limit]
+    return ResultsResponse(
+        season=season,
+        total=len(rows),
+        returned=len(page),
+        offset=offset,
+        results=page,
+    )
 
 
 # Keep this mount last so the API routes above always take priority.
