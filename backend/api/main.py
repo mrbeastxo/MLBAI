@@ -93,7 +93,7 @@ class ResultsResponse(BaseModel):
 
 app = FastAPI(
     title="MLBAI API",
-    version="0.37.0",
+    version="0.38.0",
     description="Read-only access to MLBAI game analysis and model tracking.",
 )
 app.add_middleware(
@@ -182,6 +182,11 @@ def context_validation() -> dict[str, Any]:
 @app.get("/api/v1/postgame-learning")
 def postgame_learning() -> dict[str, Any]:
     return load_json(POSTGAME_REPORT_PATH)
+
+
+@app.get("/api/v1/standings")
+def standings(season: int = Query(default_factory=lambda: date.today().year, ge=1876, le=2200)) -> dict[str, Any]:
+    return load_json(PROCESSED_DATA_DIR / f"standings_{season}.json")
 
 
 @app.get("/api/v1/score-model")

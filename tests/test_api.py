@@ -152,6 +152,16 @@ def test_postgame_learning_endpoint(tmp_path, monkeypatch):
     assert response.json()["sample_status"] == "too_early"
 
 
+def test_standings_endpoint(tmp_path, monkeypatch):
+    processed = tmp_path / "processed"
+    processed.mkdir()
+    (processed / "standings_2026.json").write_text(json.dumps({"season": 2026, "leagues": []}))
+    monkeypatch.setattr(main, "PROCESSED_DATA_DIR", processed)
+    response = TestClient(main.app).get("/api/v1/standings?season=2026")
+    assert response.status_code == 200
+    assert response.json()["season"] == 2026
+
+
 def test_score_model_report_endpoint(tmp_path, monkeypatch):
     report = tmp_path / "scores.json"
     report.write_text(json.dumps({"model": "paired_poisson_regression"}))

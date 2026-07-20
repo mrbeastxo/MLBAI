@@ -267,6 +267,29 @@ async function loadPostgameLearning() {
   }
 }
 
+function standingsTable(league) {
+  return `<article class="league-table"><h3>${escapeHtml(league.league)}</h3><div class="standings-scroll"><table>
+    <thead><tr><th>#</th><th>Team</th><th>W</th><th>L</th><th>PCT</th><th>GB</th><th>DIFF</th><th>L10</th><th>STRK</th></tr></thead>
+    <tbody>${league.teams.map(team => `<tr>
+      <td>${team.rank}</td><td><strong>${escapeHtml(team.abbreviation || team.team)}</strong><small>${escapeHtml(team.team)}</small></td>
+      <td>${team.wins}</td><td>${team.losses}</td><td>${team.winning_percentage.toFixed(3).replace(/^0/, "")}</td>
+      <td>${escapeHtml(team.games_back)}</td><td class="${team.run_differential > 0 ? "positive" : team.run_differential < 0 ? "negative" : ""}">${team.run_differential > 0 ? "+" : ""}${team.run_differential}</td>
+      <td>${escapeHtml(team.last_ten)}</td><td>${escapeHtml(team.streak)}</td>
+    </tr>`).join("")}</tbody></table></div></article>`;
+}
+
+async function loadStandings() {
+  try {
+    const data = await fetchJson("/api/v1/standings?season=2026");
+    document.querySelector("#standings-tables").innerHTML = data.leagues.map(standingsTable).join("");
+    document.querySelector("#standings-updated").textContent = data.last_updated
+      ? `Updated ${new Date(data.last_updated).toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}`
+      : `${data.season} regular season`;
+  } catch {
+    document.querySelector("#standings-tables").innerHTML = '<p class="muted">League tables are unavailable.</p>';
+  }
+}
+
 async function loadGames(gameDate) {
   renderLoading();
   try {
@@ -354,5 +377,6 @@ loadPerformance();
 loadSystemHealth();
 loadCalibration();
 loadPostgameLearning();
+loadStandings();
 loadGames(dateInput.value);
 loadResults();

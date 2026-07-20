@@ -85,6 +85,17 @@ h1 span { color: var(--accent); }
 .learning-grid span, .learning-grid small { display: block; color: var(--muted); }
 .learning-grid span { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; }
 .learning-grid strong { display: block; margin: 7px 0 5px; font-size: 1.25rem; }
+.standings-section { padding: 55px 0 10px; }
+.standings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.league-table { min-width: 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: rgba(17, 24, 22, .72); }
+.league-table h3 { padding: 18px; border-bottom: 1px solid var(--line); }
+.standings-scroll { overflow-x: auto; }
+.league-table table { min-width: 620px; }
+.league-table th, .league-table td { padding: 10px 9px; font-size: .76rem; }
+.league-table td:nth-child(2) { min-width: 130px; }
+.league-table td small { display: block; color: var(--muted); font-size: .62rem; }
+.league-table .positive { color: var(--accent); }
+.league-table .negative { color: var(--danger); }
 
 .board { padding: 72px 0 40px; }
 .section-heading { display: flex; justify-content: space-between; align-items: end; margin-bottom: 24px; }
@@ -193,6 +204,7 @@ footer { display: flex; justify-content: space-between; padding: 30px 0 45px; bo
   .operation-grid { grid-template-columns: 1fr 1fr; }
   .calibration-panel { grid-template-columns: 1fr; }
   .learning-grid { grid-template-columns: 1fr 1fr; }
+  .standings-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 570px) {

@@ -28,6 +28,7 @@ from backend.data_pipeline.lineup_context import (
     collect_lineups_with_cache,
 )
 from backend.data_pipeline.pregame_features import PREGAME_FIELDS, build_pregame_rows
+from backend.data_pipeline.standings import collect_with_cache as collect_standings
 from backend.history.season_results import build_season_results, save_season_results
 from backend.tracking.prediction_tracker import (
     DEFAULT_DATABASE,
@@ -58,6 +59,7 @@ ContextFetcher = Callable[
 ]
 EnvironmentFetcher = Callable[[date], tuple[list[dict[str, Any]], list[str]]]
 LineupFetcher = Callable[[int, date], tuple[list[dict[str, Any]], list[str]]]
+StandingsFetcher = Callable[[int], tuple[dict[str, Any], list[str]]]
 
 
 def pending_dates(connection, before: date) -> list[date]:
@@ -127,6 +129,7 @@ def run_daily(
     context_fetcher: ContextFetcher = collect_context_snapshot,
     environment_fetcher: EnvironmentFetcher = collect_environment_with_cache,
     lineup_fetcher: LineupFetcher = collect_lineups_with_cache,
+    standings_fetcher: StandingsFetcher = collect_standings,
 ) -> dict[str, Any]:
     """Execute one restart-safe daily run and return its audit summary."""
     now = (now or datetime.now(UTC)).astimezone(UTC)
@@ -156,12 +159,18 @@ def run_daily(
         context_errors: list[str] = []
         environment_rows: list[dict[str, Any]] = []
         environment_errors: list[str] = []
+        standings_summary = {"teams": 0, "errors": []}
         if features:
             pitcher_rows, bullpen_rows, context_errors = context_fetcher(
                 run_date.year, run_date
             )
             features = add_validated_starter_features(features, pitcher_rows)
             environment_rows, environment_errors = environment_fetcher(run_date)
+            standings, standings_errors = standings_fetcher(run_date.year)
+            standings_summary = {
+                "teams": sum(len(league.get("teams", [])) for league in standings.get("leagues", [])),
+                "errors": standings_errors,
+            }
             if not model_path.is_file():
                 raise FileNotFoundError(f"Production model not found: {model_path}")
             if not model_report_path.is_file():
@@ -268,6 +277,7 @@ def run_daily(
                 "matchup_context": context_coverage,
                 "environment_context": environment_coverage,
                 "lineup_context": lineup_coverage,
+                "league_tables": standings_summary,
                 "tracking": tracking,
                 "performance": report,
                 "postgame_learning": {

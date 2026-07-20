@@ -420,6 +420,13 @@ future games, and the system refuses to recommend retraining below 200. The
 dashboard and `/api/v1/postgame-learning` clearly show when the sample is too
 small instead of drawing conclusions early.
 
+### League tables
+
+The daily workflow also collects official American League and National League
+standings. The dashboard shows league rank, record, winning percentage, games
+back, run differential, last-10 record, and streak. These tables provide season
+context and do not directly alter model probabilities.
+
 ## Test
 
 ```bash
