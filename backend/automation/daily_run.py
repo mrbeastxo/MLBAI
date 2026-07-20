@@ -33,6 +33,7 @@ from ml.explain_daily import DEFAULT_REPORT, explain_rows
 from ml.predict_daily import MODEL_PATH, PREDICTION_FIELDS, predict_rows
 from ml.expected_runs import MODEL_PATH as SCORE_MODEL_PATH
 from ml.predict_scores import attach_scores, predict_scores
+from ml.outcome_uncertainty import attach_uncertainty
 
 PROCESSED_DATA_DIR = PROJECT_ROOT / "data" / "processed"
 FetchSchedule = Callable[[date], dict[str, Any]]
@@ -145,6 +146,7 @@ def run_daily(
                 score_predictions = predict_scores(features, score_artifact)
                 predictions = attach_scores(predictions, score_predictions)
                 analyses = attach_scores(analyses, score_predictions)
+                analyses = attach_uncertainty(analyses)
 
         context_coverage: dict[str, Any] = {
             "possible_team_sides": len(analyses) * 2,

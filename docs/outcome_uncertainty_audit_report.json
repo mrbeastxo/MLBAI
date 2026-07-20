@@ -1,0 +1,33 @@
+{
+  "validation_method": "train_past_seasons_test_newest_season",
+  "train_games": 7289,
+  "test_games": 2428,
+  "production_feature_model": {
+    "accuracy": 0.5416,
+    "log_loss": 0.6892,
+    "brier_score": 0.248
+  },
+  "score_derived_probability": {
+    "accuracy": 0.5325,
+    "log_loss": 0.6923,
+    "brier_score": 0.2494
+  },
+  "log_loss_improvement": -0.0031,
+  "thresholds": {
+    "minimum_log_loss_improvement": 0.001
+  },
+  "gates": {
+    "log_loss_improves": false,
+    "brier_score_not_worse": false,
+    "accuracy_not_worse": false
+  },
+  "decision": "analysis_context_only",
+  "probability_model_changed": false,
+  "reason": "The score-derived probability did not beat the production feature model; it remains analysis context.",
+  "train_seasons": [
+    2022,
+    2023,
+    2024
+  ],
+  "test_season": 2025
+}

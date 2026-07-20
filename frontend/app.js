@@ -91,6 +91,16 @@ function showGame(game) {
         <strong>${escapeHtml(game.away_team)} ${game.away_expected_runs.toFixed(1)} · ${escapeHtml(game.home_team)} ${game.home_expected_runs.toFixed(1)}</strong>
         <small>Projected total ${game.expected_total_runs.toFixed(1)} · model average, not an exact score</small>
       </div>` : ""}
+      ${game.outcome_uncertainty ? `<section class="uncertainty-section">
+        <div class="context-title"><h4>Outcome uncertainty</h4><span>Analysis context only</span></div>
+        <div class="uncertainty-grid">
+          <div><span>Most likely score</span><strong>${game.outcome_uncertainty.most_likely_score.away}–${game.outcome_uncertainty.most_likely_score.home}</strong></div>
+          <div><span>Extra innings</span><strong>${percent(game.outcome_uncertainty.extra_innings_probability)}</strong></div>
+          <div><span>${escapeHtml(game.away_team)} range</span><strong>${game.outcome_uncertainty.away_runs_80_percent_range.join("–")} runs</strong></div>
+          <div><span>${escapeHtml(game.home_team)} range</span><strong>${game.outcome_uncertainty.home_runs_80_percent_range.join("–")} runs</strong></div>
+        </div>
+        <p class="muted context-note">${escapeHtml(game.outcome_uncertainty.note)}</p>
+      </section>` : ""}
       <div class="factor-columns">
         <section><h4>Supporting the lean</h4>${factorList(game.strongest_supporting_factors, "No strong supporting factor.")}</section>
         <section><h4>Working against it</h4>${factorList(game.strongest_opposing_factors, "No strong opposing factor.")}</section>

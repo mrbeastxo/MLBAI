@@ -150,3 +150,12 @@ def test_score_model_report_endpoint(tmp_path, monkeypatch):
     response = TestClient(main.app).get("/api/v1/score-model")
     assert response.status_code == 200
     assert response.json()["model"] == "paired_poisson_regression"
+
+
+def test_outcome_audit_endpoint(tmp_path, monkeypatch):
+    report = tmp_path / "outcome.json"
+    report.write_text(json.dumps({"decision": "analysis_context_only"}))
+    monkeypatch.setattr(main, "OUTCOME_AUDIT_REPORT_PATH", report)
+    response = TestClient(main.app).get("/api/v1/outcome-audit")
+    assert response.status_code == 200
+    assert response.json()["decision"] == "analysis_context_only"

@@ -358,6 +358,15 @@ MAE through `/api/v1/performance` and the dashboard. Historical games and
 projections generated after first pitch are never presented as verified model
 performance.
 
+### Milestone 29: outcome uncertainty
+
+Expected runs now produce an exact independent-Poisson score distribution with
+a most-likely score, an 80% run range for each team, and the probability that
+regulation ends tied. The derived winner probability was audited on 2,428
+untouched 2025 games and performed worse than the production feature model
+(0.6923 versus 0.6892 log loss), so it is explicitly labeled analysis context
+and does not change MLBAI's production win probability.
+
 ## Test
 
 ```bash
