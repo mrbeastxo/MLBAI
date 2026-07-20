@@ -13,6 +13,7 @@ reliable and testable.
 - Thirty-team season snapshots with records, splits, hitting, and pitching
 - Probable starters with season performance, rest, and recent workload
 - Three-day bullpen workload derived from official game box scores
+- One model-ready daily feature row per scheduled game
 - Human-readable game list in the terminal
 - Raw JSON snapshots saved under `data/raw/`
 - Starter automated tests
@@ -71,6 +72,16 @@ python -m backend.data_pipeline.bullpen_workload \
 
 The workload index is descriptive, not a probability: yesterday's pitches are
 weighted most heavily, followed by older pitches and repeat-use penalties.
+
+After collecting all snapshots for a date, combine them with:
+
+```bash
+python -m backend.data_pipeline.daily_features --date 2026-07-20
+```
+
+The resulting table uses stable MLB IDs, separate `home_` and `away_` features,
+and explicit home-minus-away differences. It contains inputs only—no invented
+prediction or outcome label.
 
 The command prints the games it finds and saves the complete API response to
 `data/raw/schedule_YYYY-MM-DD.json`.
