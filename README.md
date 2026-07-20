@@ -24,6 +24,7 @@ reliable and testable.
 - Development-fold model selection with one untouched-season test
 - Refit production model and daily rolling win-probability pipeline
 - Exact logistic explanations and held-out certainty-band evidence
+- Immutable pregame prediction ledger with final-result scoring
 - Human-readable game list in the terminal
 - Raw JSON snapshots saved under `data/raw/`
 - Starter automated tests
@@ -203,6 +204,18 @@ python -m ml.explain_daily \
 
 The analysis separates probability strength from held-out evidence, reports
 missing inputs, and retains an experimental-model reliability warning.
+
+Record predictions before game time, settle them later, and view performance:
+
+```bash
+python -m backend.tracking.prediction_tracker record \
+  --predictions data/processed/predictions_2026-07-20.csv
+python -m backend.tracking.prediction_tracker settle --date 2026-07-20
+python -m backend.tracking.prediction_tracker report
+```
+
+Predictions and results are append-only, protected by SQLite triggers, and
+linked by SHA-256 hashes. The ledger refuses changed duplicates and late rows.
 
 The command prints the games it finds and saves the complete API response to
 `data/raw/schedule_YYYY-MM-DD.json`.
