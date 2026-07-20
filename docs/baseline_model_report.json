@@ -1,0 +1,79 @@
+{
+  "model": "logistic_regression",
+  "split_method": "chronological_by_whole_date",
+  "train_games": 1929,
+  "test_games": 499,
+  "train_start_date": "2025-03-27",
+  "train_end_date": "2025-08-22",
+  "test_start_date": "2025-08-23",
+  "test_end_date": "2025-09-28",
+  "features": [
+    "win_percentage_home_minus_away",
+    "runs_per_game_home_minus_away",
+    "runs_allowed_per_game_home_minus_away",
+    "run_differential_per_game_home_minus_away",
+    "last_10_win_percentage_home_minus_away",
+    "last_10_run_differential_home_minus_away",
+    "venue_win_percentage_home_minus_away",
+    "schedule_load_home_minus_away"
+  ],
+  "model_metrics": {
+    "accuracy": 0.5631,
+    "log_loss": 0.6837,
+    "brier_score": 0.2453
+  },
+  "home_rate_baseline_probability": 0.5459,
+  "home_rate_baseline_metrics": {
+    "accuracy": 0.5331,
+    "log_loss": 0.6913,
+    "brier_score": 0.2491
+  },
+  "calibration": [
+    {
+      "range": "0.4-0.6",
+      "games": 457,
+      "mean_prediction": 0.5427,
+      "observed_home_win_rate": 0.5208
+    },
+    {
+      "range": "0.6-0.8",
+      "games": 42,
+      "mean_prediction": 0.6114,
+      "observed_home_win_rate": 0.6667
+    }
+  ],
+  "standardized_coefficients": [
+    {
+      "feature": "last_10_run_differential_home_minus_away",
+      "coefficient": 0.2158
+    },
+    {
+      "feature": "win_percentage_home_minus_away",
+      "coefficient": 0.1812
+    },
+    {
+      "feature": "last_10_win_percentage_home_minus_away",
+      "coefficient": -0.1275
+    },
+    {
+      "feature": "schedule_load_home_minus_away",
+      "coefficient": -0.05
+    },
+    {
+      "feature": "runs_allowed_per_game_home_minus_away",
+      "coefficient": 0.0479
+    },
+    {
+      "feature": "run_differential_per_game_home_minus_away",
+      "coefficient": -0.0478
+    },
+    {
+      "feature": "venue_win_percentage_home_minus_away",
+      "coefficient": 0.0446
+    },
+    {
+      "feature": "runs_per_game_home_minus_away",
+      "coefficient": -0.0249
+    }
+  ]
+}

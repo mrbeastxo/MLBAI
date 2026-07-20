@@ -79,7 +79,7 @@ def fetch_season_games(season: int, end_date: date) -> dict[str, Any]:
 
 def completed_regular_games(payload: dict[str, Any]) -> list[dict[str, Any]]:
     """Flatten final regular-season games with the actual result."""
-    games: list[dict[str, Any]] = []
+    games_by_id: dict[str, dict[str, Any]] = {}
     for date_entry in payload.get("dates", []):
         for game in date_entry.get("games", []):
             if game.get("gameType") != "R":
@@ -89,11 +89,13 @@ def completed_regular_games(payload: dict[str, Any]) -> list[dict[str, Any]]:
             teams = game.get("teams", {})
             away = teams.get("away", {})
             home = teams.get("home", {})
+            if away.get("score") is None or home.get("score") is None:
+                continue
             away_team = away.get("team", {})
             home_team = home.get("team", {})
-            games.append(
-                {
-                    "game_id": str(game.get("gamePk")),
+            game_id = str(game.get("gamePk"))
+            games_by_id[game_id] = {
+                    "game_id": game_id,
                     "official_date": game.get("officialDate", date_entry.get("date")),
                     "game_time_utc": game.get("gameDate"),
                     "season": str(game.get("season")),
@@ -105,8 +107,10 @@ def completed_regular_games(payload: dict[str, Any]) -> list[dict[str, Any]]:
                     "home_score": int(home.get("score", 0)),
                     "home_win": int(bool(home.get("isWinner"))),
                 }
-            )
-    return sorted(games, key=lambda game: (game["official_date"], game["game_time_utc"]))
+    return sorted(
+        games_by_id.values(),
+        key=lambda game: (game["official_date"], game["game_time_utc"]),
+    )
 
 
 def _average(values: list[float]) -> float:

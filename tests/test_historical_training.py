@@ -55,5 +55,17 @@ def test_completed_regular_games_filters_nonfinal_and_nonregular() -> None:
     }
     scheduled = {**base, "gamePk": 2, "status": {"abstractGameState": "Preview"}}
     postseason = {**base, "gamePk": 3, "gameType": "F"}
-    payload = {"dates": [{"date": "2025-04-01", "games": [base, scheduled, postseason]}]}
+    scoreless_placeholder = {
+        **base,
+        "teams": {
+            "away": {"team": {"id": 1, "name": "Away"}},
+            "home": {"team": {"id": 2, "name": "Home"}},
+        },
+    }
+    payload = {
+        "dates": [
+            {"date": "2025-03-31", "games": [scoreless_placeholder]},
+            {"date": "2025-04-01", "games": [base, scheduled, postseason]},
+        ]
+    }
     assert [game["game_id"] for game in completed_regular_games(payload)] == ["1"]

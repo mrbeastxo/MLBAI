@@ -15,6 +15,7 @@ reliable and testable.
 - Three-day bullpen workload derived from official game box scores
 - One model-ready daily feature row per scheduled game
 - Leakage-safe historical training rows with final outcome labels
+- Chronologically evaluated logistic-regression baseline
 - Human-readable game list in the terminal
 - Raw JSON snapshots saved under `data/raw/`
 - Starter automated tests
@@ -95,6 +96,20 @@ Historical features are reconstructed chronologically from prior results. The
 current game's result is attached only as the `home_win` training label, and
 same-day games are updated together to prevent doubleheader leakage. Current
 team, pitcher, and bullpen snapshots are intentionally not joined to old games.
+
+Build a full completed season and train the baseline:
+
+```bash
+python -m backend.data_pipeline.historical_training \
+  --start-date 2025-03-27 --end-date 2025-09-28
+
+python -m ml.baseline_model \
+  --data data/processed/training_games_2025-03-27_2025-09-28.csv
+```
+
+The split is chronological by whole date. Logistic regression is compared with
+a constant probability learned from the training period's home-win rate using
+accuracy, log loss, Brier score, and calibration bins.
 
 The command prints the games it finds and saves the complete API response to
 `data/raw/schedule_YYYY-MM-DD.json`.
