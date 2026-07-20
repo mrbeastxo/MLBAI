@@ -254,7 +254,7 @@ stopping the rest of the scheduled refresh. Use
 `--date YYYY-MM-DD` for a specific date or `--dry-run` to generate outputs
 without adding predictions to the ledger.
 
-Schedule that workflow for 9:00 PM local time every day on macOS:
+Schedule that workflow for 9:00 AM and 9:00 PM local time every day on macOS:
 
 ```bash
 python -m backend.automation.macos_scheduler install
@@ -267,7 +267,8 @@ python -m backend.automation.macos_scheduler status
 python -m backend.automation.macos_scheduler uninstall
 ```
 
-Use `install --hour 7 --minute 30` to choose a different local time. Standard
+Use `install --hour 7 --minute 30` to choose one different local time, or repeat
+`--hour` to configure several times. Standard
 output and errors are stored under `data/logs/`. The Mac must be awake with an
 internet connection; if it is asleep at the scheduled time, macOS normally runs
 the missed calendar job after it wakes.

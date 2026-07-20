@@ -67,9 +67,13 @@ def scheduler_info(
     try:
         with plist_path.open("rb") as plist_file:
             payload = plistlib.load(plist_file)
-        interval = payload["StartCalendarInterval"]
-        hour = int(interval["Hour"])
-        minute = int(interval["Minute"])
+        raw_intervals = payload["StartCalendarInterval"]
+        intervals = raw_intervals if isinstance(raw_intervals, list) else [raw_intervals]
+        schedule_times = sorted(
+            (int(interval["Hour"]), int(interval["Minute"])) for interval in intervals
+        )
+        if not schedule_times:
+            raise ValueError("no schedule times configured")
     except (OSError, KeyError, TypeError, ValueError, plistlib.InvalidFileException):
         return {
             "installed": True,
@@ -80,8 +84,10 @@ def scheduler_info(
     return {
         "installed": True,
         "configuration_valid": True,
-        "schedule": f"{hour:02d}:{minute:02d}",
-        "next_run_local": next_run_time(hour, minute, now).isoformat(),
+        "schedule": " & ".join(f"{hour:02d}:{minute:02d}" for hour, minute in schedule_times),
+        "next_run_local": min(
+            next_run_time(hour, minute, now) for hour, minute in schedule_times
+        ).isoformat(),
     }
 
 

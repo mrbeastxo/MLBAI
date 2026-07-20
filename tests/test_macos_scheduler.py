@@ -17,16 +17,24 @@ def test_launch_agent_config_runs_daily_workflow_at_requested_time() -> None:
     assert config["RunAtLoad"] is False
 
 
-def test_launch_agent_config_defaults_to_nine_pm() -> None:
+def test_launch_agent_config_defaults_to_nine_am_and_pm() -> None:
     config = macos_scheduler.launch_agent_config()
 
-    assert config["StartCalendarInterval"] == {"Hour": 21, "Minute": 0}
+    assert config["StartCalendarInterval"] == [
+        {"Hour": 9, "Minute": 0},
+        {"Hour": 21, "Minute": 0},
+    ]
 
 
 @pytest.mark.parametrize("hour,minute", [(-1, 0), (24, 0), (6, -1), (6, 60)])
 def test_invalid_schedule_times_are_rejected(hour: int, minute: int) -> None:
     with pytest.raises(ValueError):
         macos_scheduler.launch_agent_config(hour, minute)
+
+
+def test_empty_schedule_is_rejected() -> None:
+    with pytest.raises(ValueError):
+        macos_scheduler.launch_agent_config([], 0)
 
 
 def test_install_writes_plist_and_loads_agent(tmp_path, monkeypatch) -> None:

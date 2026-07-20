@@ -7,6 +7,7 @@ import os
 import plistlib
 import subprocess
 from pathlib import Path
+from collections.abc import Iterable
 from typing import Any
 
 from backend.data_pipeline.mlb_schedule import PROJECT_ROOT
@@ -26,8 +27,26 @@ def validate_time(hour: int, minute: int) -> None:
         raise ValueError("minute must be between 0 and 59")
 
 
-def launch_agent_config(hour: int = 21, minute: int = 0) -> dict[str, Any]:
-    validate_time(hour, minute)
+DEFAULT_HOURS = (9, 21)
+
+
+def schedule_intervals(
+    hours: int | Iterable[int] = DEFAULT_HOURS,
+    minute: int = 0,
+) -> list[dict[str, int]]:
+    normalized_hours = [hours] if isinstance(hours, int) else list(hours)
+    if not normalized_hours:
+        raise ValueError("at least one schedule hour is required")
+    for hour in normalized_hours:
+        validate_time(hour, minute)
+    return [{"Hour": hour, "Minute": minute} for hour in sorted(set(normalized_hours))]
+
+
+def launch_agent_config(
+    hours: int | Iterable[int] = DEFAULT_HOURS,
+    minute: int = 0,
+) -> dict[str, Any]:
+    intervals = schedule_intervals(hours, minute)
     return {
         "Label": LABEL,
         "ProgramArguments": [
@@ -36,7 +55,7 @@ def launch_agent_config(hour: int = 21, minute: int = 0) -> dict[str, Any]:
             "backend.automation.daily_run",
         ],
         "WorkingDirectory": str(PROJECT_ROOT),
-        "StartCalendarInterval": {"Hour": hour, "Minute": minute},
+        "StartCalendarInterval": intervals[0] if len(intervals) == 1 else intervals,
         "RunAtLoad": False,
         "ProcessType": "Background",
         "EnvironmentVariables": {"PYTHONUNBUFFERED": "1"},
@@ -58,7 +77,7 @@ def launchctl(*arguments: str, check: bool = True) -> subprocess.CompletedProces
     )
 
 
-def install(plist_path: Path, hour: int, minute: int) -> None:
+def install(plist_path: Path, hours: int | Iterable[int], minute: int) -> None:
     if not PYTHON_PATH.is_file():
         raise FileNotFoundError(
             f"Virtual-environment Python not found: {PYTHON_PATH}. Create .venv first."
@@ -66,7 +85,7 @@ def install(plist_path: Path, hour: int, minute: int) -> None:
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     plist_path.parent.mkdir(parents=True, exist_ok=True)
     with plist_path.open("wb") as plist_file:
-        plistlib.dump(launch_agent_config(hour, minute), plist_file, sort_keys=False)
+        plistlib.dump(launch_agent_config(hours, minute), plist_file, sort_keys=False)
     launchctl("bootout", domain(), str(plist_path), check=False)
     launchctl("bootstrap", domain(), str(plist_path))
 
@@ -89,7 +108,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
     install_parser = subparsers.add_parser("install")
-    install_parser.add_argument("--hour", type=int, default=21)
+    install_parser.add_argument(
+        "--hour",
+        dest="hours",
+        type=int,
+        action="append",
+        help="local run hour; repeat for multiple times (default: 9 and 21)",
+    )
     install_parser.add_argument("--minute", type=int, default=0)
     install_parser.add_argument("--plist", type=Path, default=DEFAULT_PLIST)
     status_parser = subparsers.add_parser("status")
@@ -100,10 +125,10 @@ def main() -> None:
 
     try:
         if args.command == "install":
-            install(args.plist, args.hour, args.minute)
-            print(
-                f"MLBAI scheduled for {args.hour:02d}:{args.minute:02d} local time daily."
-            )
+            hours = args.hours or list(DEFAULT_HOURS)
+            install(args.plist, hours, args.minute)
+            times = " and ".join(f"{hour:02d}:{args.minute:02d}" for hour in hours)
+            print(f"MLBAI scheduled for {times} local time daily.")
             print(f"LaunchAgent installed at: {args.plist}")
         elif args.command == "uninstall":
             removed = uninstall(args.plist)
