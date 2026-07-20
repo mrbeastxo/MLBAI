@@ -9,6 +9,7 @@ reliable and testable.
 
 - Python 3.12 virtual environment
 - Official MLB Stats API schedule collector
+- Completed-game results collector with model-ready CSV output
 - Human-readable game list in the terminal
 - Raw JSON snapshots saved under `data/raw/`
 - Starter automated tests
@@ -25,6 +26,19 @@ To collect a specific date:
 
 ```bash
 python -m backend.data_pipeline.mlb_schedule --date 2026-07-20
+```
+
+To collect completed games for one date:
+
+```bash
+python -m backend.data_pipeline.completed_games --start-date 2025-07-20
+```
+
+Or use an inclusive date range:
+
+```bash
+python -m backend.data_pipeline.completed_games \
+  --start-date 2025-07-18 --end-date 2025-07-20
 ```
 
 The command prints the games it finds and saves the complete API response to
