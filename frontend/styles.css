@@ -158,6 +158,9 @@ dialog::backdrop { background: rgba(2, 7, 5, .82); backdrop-filter: blur(5px); }
 .context-card strong { display: block; margin: 6px 0 4px; }
 .context-card small { font-size: .74rem; line-height: 1.45; }
 .context-note { font-size: .78rem; }
+.environment-venue { margin-top: 14px; }
+.environment-venue strong, .environment-venue span { display: block; }
+.environment-venue span { margin-top: 4px; color: var(--muted); font-size: .8rem; }
 .reliability { margin: 28px 0 0; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); line-height: 1.55; }
 
 footer { display: flex; justify-content: space-between; padding: 30px 0 45px; border-top: 1px solid var(--line); color: var(--muted); font-size: .8rem; }

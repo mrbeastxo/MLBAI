@@ -367,6 +367,17 @@ untouched 2025 games and performed worse than the production feature model
 (0.6923 versus 0.6892 log loss), so it is explicitly labeled analysis context
 and does not change MLBAI's production win probability.
 
+### Milestone 30: ballpark and weather intelligence
+
+The daily workflow collects official MLB venue metadata—stadium, city, roof,
+and playing surface—and matches each park's coordinates and first-pitch time to
+an hourly Open-Meteo forecast. Temperature, condition, rain chance, wind, and
+gusts are cached for every matchup and displayed as context only. They do not
+change production probabilities until equivalent historical weather is
+backfilled and validated chronologically.
+
+Weather data: `https://open-meteo.com/` (CC BY 4.0).
+
 ## Test
 
 ```bash

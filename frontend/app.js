@@ -115,6 +115,21 @@ function showGame(game) {
         </div>
         <p class="muted context-note">${escapeHtml(game.matchup_context.note)}</p>
       </section>` : ""}
+      ${game.environment_context ? `<section class="context-section environment-section">
+        <div class="context-title"><h4>Ballpark & weather</h4><span>Context only · not in probability</span></div>
+        <div class="environment-venue">
+          <strong>${escapeHtml(game.environment_context.venue_name)}</strong>
+          <span>${escapeHtml(game.environment_context.city)} · ${escapeHtml(game.environment_context.roof_type)} roof · ${escapeHtml(game.environment_context.turf_type)}</span>
+          <span>${escapeHtml(game.environment_context.weather_exposure)}</span>
+        </div>
+        <div class="uncertainty-grid">
+          <div><span>First-pitch forecast</span><strong>${Number(game.environment_context.temperature_f).toFixed(0)}°F · ${escapeHtml(game.environment_context.weather_condition)}</strong></div>
+          <div><span>Rain chance</span><strong>${escapeHtml(game.environment_context.precipitation_probability)}%</strong></div>
+          <div><span>Wind</span><strong>${Number(game.environment_context.wind_speed_mph).toFixed(1)} mph</strong></div>
+          <div><span>Wind gusts</span><strong>${Number(game.environment_context.wind_gust_mph).toFixed(1)} mph</strong></div>
+        </div>
+        <p class="muted context-note">${escapeHtml(game.environment_context.note)}</p>
+      </section>` : ""}
       <p class="reliability">${escapeHtml(game.reliability_note)}</p>
     </article>`;
   dialog.showModal();

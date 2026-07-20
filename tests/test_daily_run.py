@@ -58,6 +58,7 @@ def test_daily_run_with_no_games_is_successful_and_restart_safe(tmp_path) -> Non
         season_fetcher=lambda year, through: season_payload,
         schedule_fetcher=lambda game_date: {"dates": []},
         context_fetcher=lambda season, run_date: ([], [], []),
+        environment_fetcher=lambda run_date: ([], []),
     )
     second = daily_run.run_daily(
         date(2026, 7, 20),
@@ -108,6 +109,7 @@ def test_dry_run_does_not_write_predictions_to_ledger(tmp_path, monkeypatch) -> 
         season_fetcher=lambda year, through: {},
         schedule_fetcher=lambda game_date: {"dates": []},
         context_fetcher=lambda season, run_date: ([], [], []),
+        environment_fetcher=lambda run_date: ([], []),
     )
     connection = connect_database(database)
     count = connection.execute("SELECT COUNT(*) FROM predictions").fetchone()[0]

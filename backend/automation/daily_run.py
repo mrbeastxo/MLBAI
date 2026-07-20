@@ -18,6 +18,10 @@ from backend.data_pipeline.matchup_context import (
     attach_matchup_context,
     collect_context_snapshot,
 )
+from backend.data_pipeline.environment_context import (
+    attach_environment_context,
+    collect_environment_with_cache,
+)
 from backend.data_pipeline.pregame_features import PREGAME_FIELDS, build_pregame_rows
 from backend.history.season_results import build_season_results, save_season_results
 from backend.tracking.prediction_tracker import (
@@ -42,6 +46,7 @@ ContextFetcher = Callable[
     [int, date],
     tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]],
 ]
+EnvironmentFetcher = Callable[[date], tuple[list[dict[str, Any]], list[str]]]
 
 
 def pending_dates(connection, before: date) -> list[date]:
@@ -108,6 +113,7 @@ def run_daily(
     season_fetcher: FetchSeason = fetch_season_games,
     schedule_fetcher: FetchSchedule = fetch_schedule,
     context_fetcher: ContextFetcher = collect_context_snapshot,
+    environment_fetcher: EnvironmentFetcher = collect_environment_with_cache,
 ) -> dict[str, Any]:
     """Execute one restart-safe daily run and return its audit summary."""
     now = (now or datetime.now(UTC)).astimezone(UTC)
@@ -164,6 +170,18 @@ def run_daily(
                 analyses, pitcher_rows, bullpen_rows, context_errors
             )
 
+        environment_coverage: dict[str, Any] = {
+            "scheduled_games": len(analyses),
+            "forecast_games": 0,
+            "coverage": 0.0,
+            "errors": [],
+        }
+        if analyses:
+            environment_rows, environment_errors = environment_fetcher(run_date)
+            analyses, environment_coverage = attach_environment_context(
+                analyses, environment_rows, environment_errors
+            )
+
         prediction_path = output_dir / f"predictions_{run_date.isoformat()}.csv"
         analysis_path = output_dir / f"analysis_{run_date.isoformat()}.json"
         write_csv(prediction_path, PREDICTION_FIELDS, predictions)
@@ -197,6 +215,7 @@ def run_daily(
                 ),
                 "completed_season_games": len(season_results),
                 "matchup_context": context_coverage,
+                "environment_context": environment_coverage,
                 "tracking": tracking,
                 "performance": report,
                 "outputs": {
