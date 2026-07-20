@@ -1,0 +1,412 @@
+{
+  "decision": "context_only",
+  "probability_model_changed": false,
+  "validation_method": "same_rows_expanding_window_by_complete_season",
+  "available_games_by_season": {
+    "2022": 2430,
+    "2023": 2430,
+    "2024": 2429,
+    "2025": 2430
+  },
+  "thresholds": {
+    "minimum_games_per_season": 2000,
+    "minimum_log_loss_improvement": 0.001,
+    "maximum_accuracy_drop": 0.01
+  },
+  "gates": {
+    "full_season_coverage": true,
+    "log_loss_improves": false,
+    "brier_score_not_worse": false,
+    "accuracy_not_materially_worse": true
+  },
+  "untouched_test": {
+    "advanced_model": {
+      "accuracy": 0.5416,
+      "log_loss": 0.6892,
+      "brier_score": 0.248
+    },
+    "pitching_bullpen_candidate": {
+      "accuracy": 0.5436,
+      "log_loss": 0.6893,
+      "brier_score": 0.2481
+    },
+    "log_loss_improvement": -0.0001
+  },
+  "reason": "Candidate did not pass every gate; production probabilities remain unchanged.",
+  "advanced_validation": {
+    "model": "logistic_regression",
+    "validation_method": "expanding_window_by_complete_season",
+    "feature_set": "advanced",
+    "feature_count": 13,
+    "features": [
+      "win_percentage_home_minus_away",
+      "runs_per_game_home_minus_away",
+      "runs_allowed_per_game_home_minus_away",
+      "run_differential_per_game_home_minus_away",
+      "last_10_win_percentage_home_minus_away",
+      "last_10_run_differential_home_minus_away",
+      "venue_win_percentage_home_minus_away",
+      "schedule_load_home_minus_away",
+      "last_30_win_percentage_home_minus_away",
+      "last_30_run_differential_home_minus_away",
+      "pythagorean_expectation_home_minus_away",
+      "streak_home_minus_away",
+      "elo_rating_home_minus_away"
+    ],
+    "model_selection_folds": [
+      {
+        "train_seasons": [
+          2022
+        ],
+        "validation_season": 2023,
+        "train_games": 2430,
+        "validation_games": 2430,
+        "model_metrics": {
+          "accuracy": 0.5523,
+          "log_loss": 0.6848,
+          "brier_score": 0.2458
+        },
+        "home_rate_baseline_probability": 0.5329,
+        "home_rate_baseline_metrics": {
+          "accuracy": 0.521,
+          "log_loss": 0.6926,
+          "brier_score": 0.2497
+        }
+      },
+      {
+        "train_seasons": [
+          2022,
+          2023
+        ],
+        "validation_season": 2024,
+        "train_games": 4860,
+        "validation_games": 2429,
+        "model_metrics": {
+          "accuracy": 0.5603,
+          "log_loss": 0.6841,
+          "brier_score": 0.2455
+        },
+        "home_rate_baseline_probability": 0.527,
+        "home_rate_baseline_metrics": {
+          "accuracy": 0.5216,
+          "log_loss": 0.6923,
+          "brier_score": 0.2496
+        }
+      }
+    ],
+    "final_untouched_test": {
+      "train_seasons": [
+        2022,
+        2023,
+        2024
+      ],
+      "test_season": 2025,
+      "train_games": 7289,
+      "validation_games": 2430,
+      "model_metrics": {
+        "accuracy": 0.5416,
+        "log_loss": 0.6892,
+        "brier_score": 0.248
+      },
+      "home_rate_baseline_probability": 0.5252,
+      "home_rate_baseline_metrics": {
+        "accuracy": 0.5428,
+        "log_loss": 0.6901,
+        "brier_score": 0.2485
+      },
+      "calibration": [
+        {
+          "range": "0.2-0.4",
+          "games": 168,
+          "mean_prediction": 0.3621,
+          "observed_home_win_rate": 0.4226
+        },
+        {
+          "range": "0.4-0.6",
+          "games": 1970,
+          "mean_prediction": 0.5053,
+          "observed_home_win_rate": 0.5482
+        },
+        {
+          "range": "0.6-0.8",
+          "games": 292,
+          "mean_prediction": 0.6416,
+          "observed_home_win_rate": 0.5753
+        }
+      ]
+    },
+    "final_standardized_coefficients": [
+      {
+        "feature": "elo_rating_home_minus_away",
+        "coefficient": 0.263
+      },
+      {
+        "feature": "pythagorean_expectation_home_minus_away",
+        "coefficient": 0.2434
+      },
+      {
+        "feature": "venue_win_percentage_home_minus_away",
+        "coefficient": -0.1374
+      },
+      {
+        "feature": "last_30_win_percentage_home_minus_away",
+        "coefficient": -0.1352
+      },
+      {
+        "feature": "win_percentage_home_minus_away",
+        "coefficient": 0.0941
+      },
+      {
+        "feature": "schedule_load_home_minus_away",
+        "coefficient": 0.0571
+      },
+      {
+        "feature": "runs_per_game_home_minus_away",
+        "coefficient": -0.0506
+      },
+      {
+        "feature": "last_10_run_differential_home_minus_away",
+        "coefficient": -0.0476
+      },
+      {
+        "feature": "streak_home_minus_away",
+        "coefficient": -0.047
+      },
+      {
+        "feature": "runs_allowed_per_game_home_minus_away",
+        "coefficient": -0.0444
+      },
+      {
+        "feature": "last_30_run_differential_home_minus_away",
+        "coefficient": 0.0421
+      },
+      {
+        "feature": "last_10_win_percentage_home_minus_away",
+        "coefficient": -0.0102
+      },
+      {
+        "feature": "run_differential_per_game_home_minus_away",
+        "coefficient": -0.0025
+      }
+    ]
+  },
+  "candidate_validation": {
+    "model": "logistic_regression",
+    "validation_method": "expanding_window_by_complete_season",
+    "feature_set": "combined",
+    "feature_count": 23,
+    "features": [
+      "win_percentage_home_minus_away",
+      "runs_per_game_home_minus_away",
+      "runs_allowed_per_game_home_minus_away",
+      "run_differential_per_game_home_minus_away",
+      "last_10_win_percentage_home_minus_away",
+      "last_10_run_differential_home_minus_away",
+      "venue_win_percentage_home_minus_away",
+      "schedule_load_home_minus_away",
+      "last_30_win_percentage_home_minus_away",
+      "last_30_run_differential_home_minus_away",
+      "pythagorean_expectation_home_minus_away",
+      "streak_home_minus_away",
+      "elo_rating_home_minus_away",
+      "starter_era_home_minus_away",
+      "starter_whip_home_minus_away",
+      "starter_k9_home_minus_away",
+      "starter_bb9_home_minus_away",
+      "away_starter_history_missing",
+      "home_starter_history_missing",
+      "bullpen_pitches_last_3_home_minus_away",
+      "bullpen_back_to_back_home_minus_away",
+      "away_bullpen_history_missing",
+      "home_bullpen_history_missing"
+    ],
+    "model_selection_folds": [
+      {
+        "train_seasons": [
+          2022
+        ],
+        "validation_season": 2023,
+        "train_games": 2430,
+        "validation_games": 2430,
+        "model_metrics": {
+          "accuracy": 0.5621,
+          "log_loss": 0.6867,
+          "brier_score": 0.2467
+        },
+        "home_rate_baseline_probability": 0.5329,
+        "home_rate_baseline_metrics": {
+          "accuracy": 0.521,
+          "log_loss": 0.6926,
+          "brier_score": 0.2497
+        }
+      },
+      {
+        "train_seasons": [
+          2022,
+          2023
+        ],
+        "validation_season": 2024,
+        "train_games": 4860,
+        "validation_games": 2429,
+        "model_metrics": {
+          "accuracy": 0.5615,
+          "log_loss": 0.6852,
+          "brier_score": 0.2459
+        },
+        "home_rate_baseline_probability": 0.527,
+        "home_rate_baseline_metrics": {
+          "accuracy": 0.5216,
+          "log_loss": 0.6923,
+          "brier_score": 0.2496
+        }
+      }
+    ],
+    "final_untouched_test": {
+      "train_seasons": [
+        2022,
+        2023,
+        2024
+      ],
+      "test_season": 2025,
+      "train_games": 7289,
+      "validation_games": 2430,
+      "model_metrics": {
+        "accuracy": 0.5436,
+        "log_loss": 0.6893,
+        "brier_score": 0.2481
+      },
+      "home_rate_baseline_probability": 0.5252,
+      "home_rate_baseline_metrics": {
+        "accuracy": 0.5428,
+        "log_loss": 0.6901,
+        "brier_score": 0.2485
+      },
+      "calibration": [
+        {
+          "range": "0.0-0.2",
+          "games": 3,
+          "mean_prediction": 0.1397,
+          "observed_home_win_rate": 0.6667
+        },
+        {
+          "range": "0.2-0.4",
+          "games": 202,
+          "mean_prediction": 0.357,
+          "observed_home_win_rate": 0.3762
+        },
+        {
+          "range": "0.4-0.6",
+          "games": 1903,
+          "mean_prediction": 0.5048,
+          "observed_home_win_rate": 0.5518
+        },
+        {
+          "range": "0.6-0.8",
+          "games": 321,
+          "mean_prediction": 0.6446,
+          "observed_home_win_rate": 0.5919
+        },
+        {
+          "range": "0.8-1.0",
+          "games": 1,
+          "mean_prediction": 0.9821,
+          "observed_home_win_rate": 1.0
+        }
+      ]
+    },
+    "final_standardized_coefficients": [
+      {
+        "feature": "away_bullpen_history_missing",
+        "coefficient": 0.3251
+      },
+      {
+        "feature": "home_bullpen_history_missing",
+        "coefficient": -0.3175
+      },
+      {
+        "feature": "elo_rating_home_minus_away",
+        "coefficient": 0.2531
+      },
+      {
+        "feature": "pythagorean_expectation_home_minus_away",
+        "coefficient": 0.2034
+      },
+      {
+        "feature": "venue_win_percentage_home_minus_away",
+        "coefficient": -0.1438
+      },
+      {
+        "feature": "last_30_win_percentage_home_minus_away",
+        "coefficient": -0.1277
+      },
+      {
+        "feature": "win_percentage_home_minus_away",
+        "coefficient": 0.0823
+      },
+      {
+        "feature": "home_starter_history_missing",
+        "coefficient": -0.079
+      },
+      {
+        "feature": "starter_whip_home_minus_away",
+        "coefficient": -0.0727
+      },
+      {
+        "feature": "schedule_load_home_minus_away",
+        "coefficient": 0.0672
+      },
+      {
+        "feature": "runs_allowed_per_game_home_minus_away",
+        "coefficient": -0.0578
+      },
+      {
+        "feature": "starter_k9_home_minus_away",
+        "coefficient": 0.056
+      },
+      {
+        "feature": "last_10_run_differential_home_minus_away",
+        "coefficient": -0.0495
+      },
+      {
+        "feature": "starter_era_home_minus_away",
+        "coefficient": 0.0492
+      },
+      {
+        "feature": "streak_home_minus_away",
+        "coefficient": -0.0475
+      },
+      {
+        "feature": "last_30_run_differential_home_minus_away",
+        "coefficient": 0.0378
+      },
+      {
+        "feature": "runs_per_game_home_minus_away",
+        "coefficient": -0.0364
+      },
+      {
+        "feature": "starter_bb9_home_minus_away",
+        "coefficient": -0.0336
+      },
+      {
+        "feature": "bullpen_pitches_last_3_home_minus_away",
+        "coefficient": -0.0186
+      },
+      {
+        "feature": "away_starter_history_missing",
+        "coefficient": 0.0145
+      },
+      {
+        "feature": "run_differential_per_game_home_minus_away",
+        "coefficient": 0.0134
+      },
+      {
+        "feature": "bullpen_back_to_back_home_minus_away",
+        "coefficient": 0.0134
+      },
+      {
+        "feature": "last_10_win_percentage_home_minus_away",
+        "coefficient": -0.0076
+      }
+    ]
+  }
+}

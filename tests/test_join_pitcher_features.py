@@ -12,8 +12,9 @@ def test_join_pitcher_features_filters_range_and_reports_coverage() -> None:
             "game_id": "2",
             "official_date": "2025-04-02",
             "starter_era_home_minus_away": "-1.0",
-            "away_starter_history_missing": "0",
-            "home_starter_history_missing": "0",
+            # The compact in-memory backfill uses integers; CSV reloads use strings.
+            "away_starter_history_missing": 0,
+            "home_starter_history_missing": 0,
         },
         {
             "game_id": "3",

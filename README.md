@@ -313,6 +313,24 @@ daily workflow collects announced starters, season pitching stats, rest,
 recent workload, and three-day bullpen fatigue without changing the validated
 win probability. The dashboard labels this distinction explicitly.
 
+Milestone 26 replaces that pilot with a compact full-season backfill and tests
+a live-compatible pitcher/bullpen candidate against the current advanced model
+on the exact same games. The newest season remains untouched until the final
+test. Deployment eligibility requires at least 2,000 games in every season,
+0.001 lower test log loss, no worse Brier score, and no more than a one-point
+accuracy decrease. Failing any gate leaves production probabilities unchanged.
+
+```bash
+python -m backend.data_pipeline.historical_context_backfill \
+  --seasons 2022 2023 2024 2025
+python -m ml.pitching_probability_candidate \
+  --data data/processed/training_pitching_bullpen_2022.csv \
+         data/processed/training_pitching_bullpen_2023.csv \
+         data/processed/training_pitching_bullpen_2024.csv \
+         data/processed/training_pitching_bullpen_2025.csv \
+  --test-season 2025
+```
+
 ## Test
 
 ```bash

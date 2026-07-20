@@ -50,8 +50,8 @@ def join_pitcher_features(
             for field in JOIN_FIELDS:
                 output[field] = pitcher.get(field, "")
             complete_history += int(
-                pitcher.get("away_starter_history_missing") == "0"
-                and pitcher.get("home_starter_history_missing") == "0"
+                str(pitcher.get("away_starter_history_missing")) == "0"
+                and str(pitcher.get("home_starter_history_missing")) == "0"
             )
         else:
             for field in JOIN_FIELDS:
