@@ -13,6 +13,7 @@ import numpy as np
 from backend.data_pipeline.mlb_schedule import PROJECT_ROOT
 from ml.baseline_model import (
     ADVANCED_FEATURES,
+    COMBINED_FEATURES,
     FEATURES,
     PITCHER_FEATURES,
     build_pipeline,
@@ -157,6 +158,7 @@ def save_artifacts(
         "baseline": "multiseason",
         "advanced": "advanced",
         "pitcher": "pitcher_enhanced",
+        "combined": "combined",
     }[feature_set_name]
     model_path = MODEL_DIR / f"{prefix}_logistic.joblib"
     report_path = REPORT_DIR / f"{prefix}_validation_report.json"
@@ -171,7 +173,7 @@ def main() -> None:
     parser.add_argument("--test-season", required=True, type=int)
     parser.add_argument(
         "--feature-set",
-        choices=("baseline", "advanced", "pitcher"),
+        choices=("baseline", "advanced", "pitcher", "combined"),
         default="baseline",
     )
     args = parser.parse_args()
@@ -182,6 +184,7 @@ def main() -> None:
             "baseline": FEATURES,
             "advanced": ADVANCED_FEATURES,
             "pitcher": PITCHER_FEATURES,
+            "combined": COMBINED_FEATURES,
         }[args.feature_set]
         pipeline, report = run_multiseason_validation(
             grouped, args.test_season, features, args.feature_set

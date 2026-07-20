@@ -20,6 +20,7 @@ reliable and testable.
 - Advanced leakage-safe Elo, last-30, Pythagorean, and streak features
 - Resumable historical box-score archive and pregame starter features
 - Pitcher-feature joins with explicit matchup and history coverage
+- Historical bullpen performance and workload from cached box scores
 - Human-readable game list in the terminal
 - Raw JSON snapshots saved under `data/raw/`
 - Starter automated tests
@@ -158,6 +159,10 @@ python -m backend.data_pipeline.join_pitcher_features \
 
 Use `--feature-set pitcher` with multi-season validation only after equivalent
 date ranges have been archived and joined for every supplied season.
+
+Build bullpen features from an existing pitcher-feature manifest, join them,
+then use `--feature-set combined` for validation. Bullpen rows include prior
+ERA, WHIP, K/9, three-day pitches, and back-to-back reliever usage.
 
 The command prints the games it finds and saves the complete API response to
 `data/raw/schedule_YYYY-MM-DD.json`.
