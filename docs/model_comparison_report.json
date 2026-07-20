@@ -1,0 +1,165 @@
+{
+  "selection_rule": "lowest_mean_development_log_loss",
+  "features": [
+    "win_percentage_home_minus_away",
+    "runs_per_game_home_minus_away",
+    "runs_allowed_per_game_home_minus_away",
+    "run_differential_per_game_home_minus_away",
+    "last_10_win_percentage_home_minus_away",
+    "last_10_run_differential_home_minus_away",
+    "venue_win_percentage_home_minus_away",
+    "schedule_load_home_minus_away",
+    "last_30_win_percentage_home_minus_away",
+    "last_30_run_differential_home_minus_away",
+    "pythagorean_expectation_home_minus_away",
+    "streak_home_minus_away",
+    "elo_rating_home_minus_away"
+  ],
+  "development_results": {
+    "logistic_regression": {
+      "folds": [
+        {
+          "train_seasons": [
+            2022
+          ],
+          "validation_season": 2023,
+          "train_games": 2430,
+          "validation_games": 2430,
+          "metrics": {
+            "accuracy": 0.5523,
+            "log_loss": 0.6848,
+            "brier_score": 0.2458
+          }
+        },
+        {
+          "train_seasons": [
+            2022,
+            2023
+          ],
+          "validation_season": 2024,
+          "train_games": 4860,
+          "validation_games": 2429,
+          "metrics": {
+            "accuracy": 0.5603,
+            "log_loss": 0.6841,
+            "brier_score": 0.2455
+          }
+        }
+      ],
+      "mean_accuracy": 0.5563,
+      "mean_log_loss": 0.6845,
+      "mean_brier_score": 0.2456
+    },
+    "random_forest": {
+      "folds": [
+        {
+          "train_seasons": [
+            2022
+          ],
+          "validation_season": 2023,
+          "train_games": 2430,
+          "validation_games": 2430,
+          "metrics": {
+            "accuracy": 0.5428,
+            "log_loss": 0.6926,
+            "brier_score": 0.2495
+          }
+        },
+        {
+          "train_seasons": [
+            2022,
+            2023
+          ],
+          "validation_season": 2024,
+          "train_games": 4860,
+          "validation_games": 2429,
+          "metrics": {
+            "accuracy": 0.5496,
+            "log_loss": 0.6868,
+            "brier_score": 0.2468
+          }
+        }
+      ],
+      "mean_accuracy": 0.5462,
+      "mean_log_loss": 0.6897,
+      "mean_brier_score": 0.2481
+    },
+    "hist_gradient_boosting": {
+      "folds": [
+        {
+          "train_seasons": [
+            2022
+          ],
+          "validation_season": 2023,
+          "train_games": 2430,
+          "validation_games": 2430,
+          "metrics": {
+            "accuracy": 0.5267,
+            "log_loss": 0.7203,
+            "brier_score": 0.2616
+          }
+        },
+        {
+          "train_seasons": [
+            2022,
+            2023
+          ],
+          "validation_season": 2024,
+          "train_games": 4860,
+          "validation_games": 2429,
+          "metrics": {
+            "accuracy": 0.5426,
+            "log_loss": 0.6928,
+            "brier_score": 0.2495
+          }
+        }
+      ],
+      "mean_accuracy": 0.5346,
+      "mean_log_loss": 0.7066,
+      "mean_brier_score": 0.2555
+    }
+  },
+  "selected_model": "logistic_regression",
+  "untouched_test": {
+    "train_seasons": [
+      2022,
+      2023,
+      2024
+    ],
+    "test_season": 2025,
+    "train_games": 7289,
+    "test_games": 2428,
+    "selected_model_metrics": {
+      "accuracy": 0.5416,
+      "log_loss": 0.6892,
+      "brier_score": 0.248
+    },
+    "home_rate_baseline_probability": 0.5252,
+    "home_rate_baseline_metrics": {
+      "accuracy": 0.5432,
+      "log_loss": 0.6901,
+      "brier_score": 0.2485
+    },
+    "calibration": [
+      {
+        "range": "0.2-0.4",
+        "games": 168,
+        "mean_prediction": 0.3621,
+        "observed_home_win_rate": 0.4226
+      },
+      {
+        "range": "0.4-0.6",
+        "games": 1968,
+        "mean_prediction": 0.5053,
+        "observed_home_win_rate": 0.5488
+      },
+      {
+        "range": "0.6-0.8",
+        "games": 292,
+        "mean_prediction": 0.6416,
+        "observed_home_win_rate": 0.5753
+      }
+    ]
+  },
+  "untouched_test_policy": "Only the development-fold winner was evaluated on the test season."
+}

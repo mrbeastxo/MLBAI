@@ -21,6 +21,7 @@ reliable and testable.
 - Resumable historical box-score archive and pregame starter features
 - Pitcher-feature joins with explicit matchup and history coverage
 - Historical bullpen performance and workload from cached box scores
+- Development-fold model selection with one untouched-season test
 - Human-readable game list in the terminal
 - Raw JSON snapshots saved under `data/raw/`
 - Starter automated tests
@@ -163,6 +164,21 @@ date ranges have been archived and joined for every supplied season.
 Build bullpen features from an existing pitcher-feature manifest, join them,
 then use `--feature-set combined` for validation. Bullpen rows include prior
 ERA, WHIP, K/9, three-day pitches, and back-to-back reliever usage.
+
+Compare logistic regression, random forest, and histogram gradient boosting on
+the full advanced team dataset with:
+
+```bash
+python -m ml.model_comparison \
+  --data data/processed/training_games_2022-04-07_2022-10-05.csv \
+         data/processed/training_games_2023-03-30_2023-10-01.csv \
+         data/processed/training_games_2024-03-20_2024-09-30.csv \
+         data/processed/training_games_2025-03-27_2025-09-28.csv \
+  --test-season 2025
+```
+
+Selection uses mean development-fold log loss. Only the winner is evaluated on
+the untouched newest season.
 
 The command prints the games it finds and saves the complete API response to
 `data/raw/schedule_YYYY-MM-DD.json`.
