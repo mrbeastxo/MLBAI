@@ -12,6 +12,7 @@ reliable and testable.
 - Completed-game results collector with model-ready CSV output
 - Thirty-team season snapshots with records, splits, hitting, and pitching
 - Probable starters with season performance, rest, and recent workload
+- Three-day bullpen workload derived from official game box scores
 - Human-readable game list in the terminal
 - Raw JSON snapshots saved under `data/raw/`
 - Starter automated tests
@@ -60,6 +61,16 @@ python -m backend.data_pipeline.starting_pitchers \
 ```
 
 Some teams may be absent when MLB has not announced their probable starter yet.
+
+To measure bullpen workload before a game date:
+
+```bash
+python -m backend.data_pipeline.bullpen_workload \
+  --season 2026 --date 2026-07-20
+```
+
+The workload index is descriptive, not a probability: yesterday's pitches are
+weighted most heavily, followed by older pitches and repeat-use penalties.
 
 The command prints the games it finds and saves the complete API response to
 `data/raw/schedule_YYYY-MM-DD.json`.
