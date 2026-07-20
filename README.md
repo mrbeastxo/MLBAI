@@ -25,6 +25,7 @@ reliable and testable.
 - Refit production model and daily rolling win-probability pipeline
 - Exact logistic explanations and held-out certainty-band evidence
 - Immutable pregame prediction ledger with final-result scoring
+- Read-only FastAPI service for analysis, model details, and performance
 - Human-readable game list in the terminal
 - Raw JSON snapshots saved under `data/raw/`
 - Starter automated tests
@@ -216,6 +217,16 @@ python -m backend.tracking.prediction_tracker report
 
 Predictions and results are append-only, protected by SQLite triggers, and
 linked by SHA-256 hashes. The ledger refuses changed duplicates and late rows.
+
+Start the local API with:
+
+```bash
+python -m uvicorn backend.api.main:app --reload
+```
+
+Then open `http://127.0.0.1:8000/docs` for the interactive API page. The API
+provides health, dated game analysis, individual game detail, selected-model
+information, and prediction-ledger performance. It exposes no write endpoint.
 
 The command prints the games it finds and saves the complete API response to
 `data/raw/schedule_YYYY-MM-DD.json`.
