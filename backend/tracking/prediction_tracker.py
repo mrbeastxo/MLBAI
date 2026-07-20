@@ -200,10 +200,11 @@ def record_predictions(
     shadow_rows: dict[str, dict[str, Any]] | None = None,
     learning_context: dict[str, dict[str, Any]] | None = None,
     model_version: str = "v0.36",
+    strict_existing: bool = True,
 ) -> dict[str, int]:
     """Insert only new pregame records; never replace an existing prediction."""
     now = (now or datetime.now(UTC)).astimezone(UTC)
-    recorded = reused = skipped_after_start = 0
+    recorded = reused = preserved_conflicts = skipped_after_start = 0
     score_recorded = score_reused = score_skipped_after_start = 0
     shadow_recorded = context_recorded = 0
     latest = connection.execute(
@@ -218,7 +219,10 @@ def record_predictions(
         if existing:
             unchanged = all(str(existing[column]) == str(row[column]) for column in PREDICTION_COLUMNS)
             if not unchanged:
-                raise ValueError(f"Prediction for game {row['game_id']} already exists and differs")
+                if strict_existing:
+                    raise ValueError(f"Prediction for game {row['game_id']} already exists and differs")
+                preserved_conflicts += 1
+                continue
             reused += 1
             if now < parse_utc(row["game_time_utc"]):
                 score_status = _record_score_projection(
@@ -292,6 +296,7 @@ def record_predictions(
     return {
         "recorded": recorded,
         "reused": reused,
+        "preserved_conflicts": preserved_conflicts,
         "skipped_after_start": skipped_after_start,
         "score_recorded": score_recorded,
         "score_reused": score_reused,

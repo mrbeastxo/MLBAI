@@ -29,15 +29,25 @@ def directory_size(path: Path) -> int:
 
 
 def latest_run(processed_dir: Path = PROCESSED_DATA_DIR) -> dict[str, Any] | None:
-    reports = sorted(processed_dir.glob("daily_run_*.json"), reverse=True)
+    reports = processed_dir.glob("daily_run_*.json")
+    candidates: list[tuple[float, dict[str, Any]]] = []
     for report_path in reports:
         try:
             payload = json.loads(report_path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             continue
         if isinstance(payload, dict):
-            return payload
-    return None
+            try:
+                completed_at = datetime.fromisoformat(
+                    str(payload["finished_at_utc"]).replace("Z", "+00:00")
+                ).timestamp()
+            except (KeyError, TypeError, ValueError):
+                try:
+                    completed_at = report_path.stat().st_mtime
+                except OSError:
+                    continue
+            candidates.append((completed_at, payload))
+    return max(candidates, key=lambda candidate: candidate[0])[1] if candidates else None
 
 
 def next_run_time(hour: int, minute: int, now: datetime | None = None) -> datetime:
@@ -75,11 +85,25 @@ def scheduler_info(
     }
 
 
-def log_info(stdout_path: Path = STDOUT_PATH, stderr_path: Path = STDERR_PATH) -> dict[str, Any]:
+def log_info(
+    stdout_path: Path = STDOUT_PATH,
+    stderr_path: Path = STDERR_PATH,
+    latest_success: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    error_bytes = stderr_path.stat().st_size if stderr_path.is_file() else 0
+    has_errors = error_bytes > 0
+    if has_errors and latest_success and latest_success.get("status") == "success":
+        try:
+            success_time = datetime.fromisoformat(
+                str(latest_success["finished_at_utc"]).replace("Z", "+00:00")
+            ).timestamp()
+            has_errors = stderr_path.stat().st_mtime > success_time
+        except (KeyError, TypeError, ValueError, OSError):
+            pass
     return {
         "output_bytes": stdout_path.stat().st_size if stdout_path.is_file() else 0,
-        "error_bytes": stderr_path.stat().st_size if stderr_path.is_file() else 0,
-        "has_errors": stderr_path.is_file() and stderr_path.stat().st_size > 0,
+        "error_bytes": error_bytes,
+        "has_errors": has_errors,
     }
 
 
@@ -96,7 +120,7 @@ def system_health(
     return {
         "scheduler": scheduler_info(plist_path, now),
         "last_run": run,
-        "logs": log_info(stdout_path, stderr_path),
+        "logs": log_info(stdout_path, stderr_path, run),
         "storage": {"data_bytes": directory_size(data_dir)},
         "project_root": str(PROJECT_ROOT),
     }

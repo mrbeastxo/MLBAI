@@ -248,7 +248,9 @@ python -m backend.automation.daily_run
 It settles past tracked games, reconstructs leakage-safe features, generates
 probabilities and explanations, records only pregame predictions, refreshes
 performance, and writes `data/processed/daily_run_YYYY-MM-DD.json`. Re-running
-it is safe: immutable predictions are reused, never overwritten. Use
+it is safe: matching immutable predictions are reused, while older locked
+predictions from a different model version are preserved and reported without
+stopping the rest of the scheduled refresh. Use
 `--date YYYY-MM-DD` for a specific date or `--dry-run` to generate outputs
 without adding predictions to the ledger.
 
@@ -271,8 +273,8 @@ internet connection; if it is asleep at the scheduled time, macOS normally runs
 the missed calendar job after it wakes.
 
 The dashboard system-health section shows the installed schedule, next run,
-latest workflow result, local storage use, and whether the scheduler error log
-contains anything. The same read-only snapshot is available at
+latest workflow result, local storage use, and whether the scheduler has an
+unresolved error newer than the latest successful run. The same read-only snapshot is available at
 `/api/v1/system`; it cannot start, stop, or modify the scheduler.
 
 Refresh the current season's completed-game archive manually with:

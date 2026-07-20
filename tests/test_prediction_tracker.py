@@ -49,6 +49,20 @@ def test_prediction_is_immutable_and_hash_chain_valid(tmp_path) -> None:
         )
 
 
+def test_scheduled_run_preserves_existing_different_prediction(tmp_path) -> None:
+    connection = connect_database(tmp_path / "ledger.sqlite3")
+    now = datetime(2026, 7, 20, 10, tzinfo=UTC)
+    record_predictions(connection, [prediction()], now)
+    summary = record_predictions(
+        connection, [prediction("0.7")], now, strict_existing=False
+    )
+    stored = connection.execute(
+        "SELECT home_win_probability FROM predictions WHERE game_id = '1'"
+    ).fetchone()
+    assert summary["preserved_conflicts"] == 1
+    assert stored["home_win_probability"] == 0.6
+
+
 def test_after_start_is_rejected_and_settled_metrics_are_correct(tmp_path) -> None:
     connection = connect_database(tmp_path / "ledger.sqlite3")
     before = datetime(2026, 7, 20, 10, tzinfo=UTC)

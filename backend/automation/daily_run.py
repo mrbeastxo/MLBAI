@@ -240,6 +240,7 @@ def run_daily(
             {
                 "recorded": 0,
                 "reused": 0,
+                "preserved_conflicts": 0,
                 "skipped_after_start": 0,
                 "score_recorded": 0,
                 "score_reused": 0,
@@ -255,6 +256,7 @@ def run_daily(
                 shadow_rows=shadow_predictions,
                 learning_context={str(row["game_id"]): row for row in analyses},
                 model_version="v0.36",
+                strict_existing=False,
             )
         )
         season_results = build_season_results(season_payload, connection)
