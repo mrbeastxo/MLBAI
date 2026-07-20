@@ -74,6 +74,25 @@ function bullpenCard(side, bullpen) {
   return `<div class="context-card"><span>${side} bullpen</span><strong>Workload ${escapeHtml(bullpen.workload_index)}</strong><small>${escapeHtml(bullpen.pitches_last_3_days)} pitches in 3 days · ${escapeHtml(bullpen.relievers_back_to_back)} back-to-back</small></div>`;
 }
 
+function hitterList(players, ordered = false) {
+  if (!players?.length) return '<p class="muted context-note">Player data unavailable.</p>';
+  return `<div class="hitter-list">${players.map(player => `<div class="hitter-row">
+    <span class="hitter-spot">${ordered ? player.batting_spot : "•"}</span>
+    <span><strong>${escapeHtml(player.name || "Unknown")}</strong><small>${escapeHtml(player.position || "—")} · Bats ${escapeHtml(player.bats || "—")}</small></span>
+    <span class="hitter-stats"><strong>${player.ops == null ? "—" : player.ops.toFixed(3)}</strong><small>OPS · ${escapeHtml(player.home_runs ?? 0)} HR</small></span>
+  </div>`).join("")}</div>`;
+}
+
+function lineupPanel(labelText, side) {
+  if (!side) return "";
+  const players = side.confirmed ? side.batting_order : side.roster_watch;
+  return `<section class="lineup-panel">
+    <div class="lineup-heading"><h5>${escapeHtml(labelText)} · ${escapeHtml(side.team_name)}</h5><span class="${side.confirmed ? "confirmed" : "waiting"}">${side.confirmed ? "Confirmed" : "Not confirmed"}</span></div>
+    <p class="muted context-note">${side.confirmed ? "Official MLB batting order" : "Roster watch by season OPS—not a predicted lineup"}</p>
+    ${hitterList(players, side.confirmed)}
+  </section>`;
+}
+
 function showGame(game) {
   const leanProbability = game.model_lean === game.home_team ? game.home_win_probability : game.away_win_probability;
   dialogContent.innerHTML = `
@@ -129,6 +148,14 @@ function showGame(game) {
           <div><span>Wind gusts</span><strong>${Number(game.environment_context.wind_gust_mph).toFixed(1)} mph</strong></div>
         </div>
         <p class="muted context-note">${escapeHtml(game.environment_context.note)}</p>
+      </section>` : ""}
+      ${game.lineup_context ? `<section class="context-section lineup-section">
+        <div class="context-title"><h4>Lineup intelligence</h4><span>Context only · not in probability</span></div>
+        <div class="lineup-grid">
+          ${lineupPanel("Away", game.lineup_context.away)}
+          ${lineupPanel("Home", game.lineup_context.home)}
+        </div>
+        <p class="muted context-note">${escapeHtml(game.lineup_context.note)}</p>
       </section>` : ""}
       <p class="reliability">${escapeHtml(game.reliability_note)}</p>
     </article>`;

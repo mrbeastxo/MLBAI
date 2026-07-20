@@ -59,6 +59,7 @@ class GameAnalysis(BaseModel):
     outcome_uncertainty: dict[str, Any] | None = None
     matchup_context: dict[str, Any] | None = None
     environment_context: dict[str, Any] | None = None
+    lineup_context: dict[str, Any] | None = None
 
 
 class GamesResponse(BaseModel):
@@ -91,7 +92,7 @@ class ResultsResponse(BaseModel):
 
 app = FastAPI(
     title="MLBAI API",
-    version="0.30.0",
+    version="0.31.0",
     description="Read-only access to MLBAI game analysis and model tracking.",
 )
 app.add_middleware(

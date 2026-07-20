@@ -22,6 +22,10 @@ from backend.data_pipeline.environment_context import (
     attach_environment_context,
     collect_environment_with_cache,
 )
+from backend.data_pipeline.lineup_context import (
+    attach_lineup_context,
+    collect_lineups_with_cache,
+)
 from backend.data_pipeline.pregame_features import PREGAME_FIELDS, build_pregame_rows
 from backend.history.season_results import build_season_results, save_season_results
 from backend.tracking.prediction_tracker import (
@@ -47,6 +51,7 @@ ContextFetcher = Callable[
     tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]],
 ]
 EnvironmentFetcher = Callable[[date], tuple[list[dict[str, Any]], list[str]]]
+LineupFetcher = Callable[[int, date], tuple[list[dict[str, Any]], list[str]]]
 
 
 def pending_dates(connection, before: date) -> list[date]:
@@ -114,6 +119,7 @@ def run_daily(
     schedule_fetcher: FetchSchedule = fetch_schedule,
     context_fetcher: ContextFetcher = collect_context_snapshot,
     environment_fetcher: EnvironmentFetcher = collect_environment_with_cache,
+    lineup_fetcher: LineupFetcher = collect_lineups_with_cache,
 ) -> dict[str, Any]:
     """Execute one restart-safe daily run and return its audit summary."""
     now = (now or datetime.now(UTC)).astimezone(UTC)
@@ -182,6 +188,19 @@ def run_daily(
                 analyses, environment_rows, environment_errors
             )
 
+        lineup_coverage: dict[str, Any] = {
+            "possible_lineup_sides": len(analyses) * 2,
+            "confirmed_lineup_sides": 0,
+            "confirmed_coverage": 0.0,
+            "game_context_coverage": 0.0,
+            "errors": [],
+        }
+        if analyses:
+            lineup_rows, lineup_errors = lineup_fetcher(run_date.year, run_date)
+            analyses, lineup_coverage = attach_lineup_context(
+                analyses, lineup_rows, lineup_errors
+            )
+
         prediction_path = output_dir / f"predictions_{run_date.isoformat()}.csv"
         analysis_path = output_dir / f"analysis_{run_date.isoformat()}.json"
         write_csv(prediction_path, PREDICTION_FIELDS, predictions)
@@ -216,6 +235,7 @@ def run_daily(
                 "completed_season_games": len(season_results),
                 "matchup_context": context_coverage,
                 "environment_context": environment_coverage,
+                "lineup_context": lineup_coverage,
                 "tracking": tracking,
                 "performance": report,
                 "outputs": {

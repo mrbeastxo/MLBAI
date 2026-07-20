@@ -378,6 +378,19 @@ backfilled and validated chronologically.
 
 Weather data: `https://open-meteo.com/` (CC BY 4.0).
 
+### Milestone 31: confirmed lineup intelligence
+
+The daily workflow now checks official MLB boxscores for confirmed batting
+orders and displays each hitter's batting side, position, and current-season
+AVG, OBP, SLG, OPS, and home runs. Before an order is confirmed, the dashboard
+shows a clearly labeled roster watch based on season OPS; it never presents
+those players as a predicted lineup. Same-date cached data keeps the section
+available during a temporary API failure.
+
+Lineup information is analysis context only. It does not change the production
+win probability until equivalent historical lineup data is backfilled and its
+effect is proven through chronological out-of-sample testing.
+
 ## Test
 
 ```bash
