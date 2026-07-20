@@ -2,6 +2,7 @@ from datetime import date
 
 from backend.data_pipeline.historical_pitchers import (
     build_pitcher_feature_rows,
+    completed_game_ids,
     starter_appearances,
 )
 
@@ -57,3 +58,28 @@ def test_pitcher_features_use_only_prior_dates() -> None:
     assert rows[1]["home_starter_era_before"] == 6.0
     assert rows[1]["starter_era_home_minus_away"] == 3.0
     assert rows[1]["away_starter_days_since_last_start"] == 6
+
+
+def test_completed_game_ids_rejects_makeup_date_outside_range() -> None:
+    payload = {
+        "dates": [
+            {
+                "date": "2025-04-01",
+                "games": [
+                    {
+                        "gamePk": 1,
+                        "officialDate": "2025-04-01",
+                        "status": {"abstractGameState": "Final"},
+                    },
+                    {
+                        "gamePk": 2,
+                        "officialDate": "2025-08-09",
+                        "status": {"abstractGameState": "Final"},
+                    },
+                ],
+            }
+        ]
+    }
+    assert completed_game_ids(payload, date(2025, 4, 1), date(2025, 4, 15)) == [
+        (1, date(2025, 4, 1))
+    ]

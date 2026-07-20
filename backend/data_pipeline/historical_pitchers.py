@@ -61,13 +61,22 @@ def fetch_completed_game_ids(start_date: date, end_date: date) -> list[tuple[int
         timeout=60,
     )
     response.raise_for_status()
+    return completed_game_ids(response.json(), start_date, end_date)
+
+
+def completed_game_ids(
+    payload: dict[str, Any], start_date: date, end_date: date
+) -> list[tuple[int, date]]:
+    """Filter rescheduled placeholders using each game's official date."""
     games: dict[int, date] = {}
-    for date_entry in response.json().get("dates", []):
+    for date_entry in payload.get("dates", []):
         for game in date_entry.get("games", []):
             if game.get("status", {}).get("abstractGameState") == "Final":
-                games[game["gamePk"]] = date.fromisoformat(
+                official_date = date.fromisoformat(
                     game.get("officialDate", date_entry["date"])
                 )
+                if start_date <= official_date <= end_date:
+                    games[game["gamePk"]] = official_date
     return sorted(games.items(), key=lambda item: (item[1], item[0]))
 
 

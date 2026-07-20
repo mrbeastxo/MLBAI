@@ -19,6 +19,7 @@ reliable and testable.
 - Expanding multi-season validation with a fully untouched newest season
 - Advanced leakage-safe Elo, last-30, Pythagorean, and streak features
 - Resumable historical box-score archive and pregame starter features
+- Pitcher-feature joins with explicit matchup and history coverage
 - Human-readable game list in the terminal
 - Raw JSON snapshots saved under `data/raw/`
 - Starter automated tests
@@ -146,6 +147,17 @@ python -m backend.data_pipeline.historical_pitchers \
 
 Every box score is cached by MLB game ID. Re-running the command reuses existing
 files, and starter totals are calculated only from starts on earlier dates.
+
+Join an archived pitcher range to its season training file:
+
+```bash
+python -m backend.data_pipeline.join_pitcher_features \
+  --training data/processed/training_games_2025-03-27_2025-09-28.csv \
+  --pitchers data/processed/historical_pitchers_2025-04-01_2025-04-07.csv
+```
+
+Use `--feature-set pitcher` with multi-season validation only after equivalent
+date ranges have been archived and joined for every supplied season.
 
 The command prints the games it finds and saves the complete API response to
 `data/raw/schedule_YYYY-MM-DD.json`.

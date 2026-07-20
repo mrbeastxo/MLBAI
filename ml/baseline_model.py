@@ -37,6 +37,15 @@ ADVANCED_FEATURES = FEATURES + [
     "streak_home_minus_away",
     "elo_rating_home_minus_away",
 ]
+PITCHER_FEATURES = ADVANCED_FEATURES + [
+    "starter_era_home_minus_away",
+    "starter_whip_home_minus_away",
+    "starter_k9_home_minus_away",
+    "starter_bb9_home_minus_away",
+    "starter_last_5_era_home_minus_away",
+    "away_starter_history_missing",
+    "home_starter_history_missing",
+]
 
 
 def load_training_rows(path: Path) -> list[dict[str, str]]:

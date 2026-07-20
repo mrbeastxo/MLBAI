@@ -14,6 +14,7 @@ from backend.data_pipeline.mlb_schedule import PROJECT_ROOT
 from ml.baseline_model import (
     ADVANCED_FEATURES,
     FEATURES,
+    PITCHER_FEATURES,
     build_pipeline,
     calibration_bins,
     feature_matrix,
@@ -152,7 +153,11 @@ def save_artifacts(
 ) -> tuple[Path, Path]:
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
-    prefix = "advanced" if feature_set_name == "advanced" else "multiseason"
+    prefix = {
+        "baseline": "multiseason",
+        "advanced": "advanced",
+        "pitcher": "pitcher_enhanced",
+    }[feature_set_name]
     model_path = MODEL_DIR / f"{prefix}_logistic.joblib"
     report_path = REPORT_DIR / f"{prefix}_validation_report.json"
     joblib.dump({"pipeline": pipeline, "features": features}, model_path)
@@ -165,13 +170,19 @@ def main() -> None:
     parser.add_argument("--data", required=True, type=Path, nargs="+")
     parser.add_argument("--test-season", required=True, type=int)
     parser.add_argument(
-        "--feature-set", choices=("baseline", "advanced"), default="baseline"
+        "--feature-set",
+        choices=("baseline", "advanced", "pitcher"),
+        default="baseline",
     )
     args = parser.parse_args()
 
     try:
         grouped = group_rows_by_season(args.data)
-        features = ADVANCED_FEATURES if args.feature_set == "advanced" else FEATURES
+        features = {
+            "baseline": FEATURES,
+            "advanced": ADVANCED_FEATURES,
+            "pitcher": PITCHER_FEATURES,
+        }[args.feature_set]
         pipeline, report = run_multiseason_validation(
             grouped, args.test_season, features, args.feature_set
         )
